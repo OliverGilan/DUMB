@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include "socketHelper.c"
 
 
 void error(char *msg)
@@ -17,16 +18,16 @@ void error(char *msg)
 int main(int argc, char **argv)
 {
 	// Declare initial vars
-    const char* hostname = argv[1];
-    const char* port = argv[2];
-    						// file descriptor for our socket
-                            
-							// server port to connect to
-							// utility variable - for monitoring reading/writing from/to the socket
-							// char array to store data going to and coming from the server
-    						// Super-special secret C struct that holds address info for building our socket
-    						// Super-special secret C struct that holds info about a machine's address
-    
+            // file descriptor for our socket
+            int sock;
+            // server port to connect to
+            const char* hostname = argv[1];
+            const char* port = argv[2];
+            // utility variable - for monitoring reading/writing from/to the socket
+            // char array to store data going to and coming from the server
+            // Super-special secret C struct that holds address info for building our socket
+            // Super-special secret C struct that holds info about a machine's address
+            struct addrinfo* info = addStruct(hostname, port);
 	
 	
 	// If the user didn't enter enough arguments, complain and exit
@@ -41,7 +42,10 @@ int main(int argc, char **argv)
 	//    BE an IP address, which is fine, and store it in the 'serverIPAddress' struct
     				
 	// try to build a socket .. if it doesn't work, complain and exit
-    
+    sock = socket(info->ai_family, SOCK_STREAM, 0);
+    if(sock < 0){
+        perror("socket()");
+    }
 
 	
 	/** We now have the IP address and port to connect to on the server, we have to get    **/
@@ -62,7 +66,10 @@ int main(int argc, char **argv)
 	
 	// try to connect to the server using our blank socket and the address info struct 
 	//   if it doesn't work, complain and exit
-	
+	int res = connect(sock, info->ai_addr, info->ai_addrlen);
+    if(res < 0){
+        perror("connect()");
+    }
 	
 	
 	/** If we're here, we're connected to the server .. w00t!  **/
