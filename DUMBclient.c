@@ -6,7 +6,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
-#include "socketHelper.c"
+#include "sockets.h"
 
 
 void error(char *msg)
