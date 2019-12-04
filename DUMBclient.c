@@ -25,6 +25,8 @@ int main(int argc, char **argv)
             const char* port = argv[2];
             // utility variable - for monitoring reading/writing from/to the socket
             // char array to store data going to and coming from the server
+            char command[5];
+            char buffer[1024];
             // Super-special secret C struct that holds address info for building our socket
             // Super-special secret C struct that holds info about a machine's address
             struct addrinfo* info = addStruct(hostname, port);
@@ -44,7 +46,7 @@ int main(int argc, char **argv)
 	// try to build a socket .. if it doesn't work, complain and exit
     sock = socket(info->ai_family, SOCK_STREAM, 0);
     if(sock < 0){
-        perror("socket()");
+        error("socket()");
     }
 
 	
@@ -64,11 +66,13 @@ int main(int argc, char **argv)
 
 	/** We now have a blank socket and a fully parameterized address info struct .. time to connect **/
 	
-	// try to connect to the server using our blank socket and the address info struct 
+	// try to connect to the server 3 times using our blank socket and the address info struct 
 	//   if it doesn't work, complain and exit
-	int res = connect(sock, info->ai_addr, info->ai_addrlen);
-    if(res < 0){
-        perror("connect()");
+    for(int i = 0; i < 3; i++){
+        int res = connect(sock, info->ai_addr, info->ai_addrlen);
+        if(res < 0){
+            error("connect()");
+        }
     }
 	
 	
@@ -77,9 +81,18 @@ int main(int argc, char **argv)
 	// zero out the message buffer
 
 	// get a message from the client
-    
+    fgets(command, 5, stdin);
+    int j = 0;
+    while(command[j]){
+        char ch = command[j];
+        command[j] = (toupper(ch));
+        j++;
+    }
 	// try to write it out to the server
-	
+	if(strncmp(command, "HELLO", 5) == 0){
+        send(sock, command, strlen(command), 0);
+        int valread = read(sock, buffer, 1024);
+    }
 	// if we couldn't write to the server for some reason, complain and exit
 	
 	// sent message to the server, zero the buffer back out to read the server's response
