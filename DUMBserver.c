@@ -5,11 +5,39 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
+#include <pthread.h>
 
 void error(char *msg)
 {
 	perror(msg);
 	exit(1);
+}
+
+void* client(void* arg){
+	int socket = *(int*)arg;
+
+	printf("%d connected\n", socket);
+
+	//Wait for data to come in from client
+	char buffer[1024];
+	while(1){
+		int bits = read(socket, buffer, sizeof(buffer));	//Read data from socket
+		if(bits == -1){
+			printf("Error receiving data from client: %s\n", strerror(errno));	//Complain if something goes wrong
+		}
+		if(bits == 0){break;} //Needs a break clause. Temp for now.
+		
+		//Do something with data
+		printf("%s\n",buffer);
+
+		//Reset buffer
+		memset(buffer, 0, sizeof(buffer));
+	}
+
+	printf("%d disconnected\n", socket);
+
+	return NULL;
 }
 
 int main(int argc, char *argv[])
@@ -23,7 +51,7 @@ int main(int argc, char *argv[])
 	struct sockaddr_in cli_addr;	// Super-special secret C struct that holds address info about our client socket
 	int addrlen;					// utility variable - size of clientAddressInfo below
 	int val;						// utility variable - for monitoring reading/writing from/to the socket
-	char buffer[1024];				// char array to store data going to and coming from the socket
+									// char array to store data going to and coming from the socket
 
 
 
@@ -72,23 +100,24 @@ int main(int argc, char *argv[])
 	clilen = sizeof(cli_addr);			// determine the size of a clientAddressInfo struct
 	
 
-	if ((newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, (socklen_t*)&clilen)) < 0)	// block until a client connects, when it does, create a client socket
+	pthread_t thread;
+	while((newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, (socklen_t*)&clilen)))	// block until a client connects, when it does, create a client socket
 	{
-		perror("accept");
-		exit(EXIT_FAILURE);
+		pthread_create(&thread, NULL, client, (void*)&newsockfd);
+		pthread_detach(thread);
 	}
 
 	/** If we're here, a client tried to connect **/
 
 	// if the connection blew up for some reason, complain and exit
 
-	memset(buffer, 0, sizeof(buffer));							// zero out the char buffer to receive a client message
-	val = read(newsockfd, buffer, 1024);	// try to read from the client socket
-	if (val == -1) {						// if the read from the client blew up, complain and exit
-		perror("read");
-		exit(EXIT_FAILURE);
-	}
-	printf("%s\n", buffer);
+	// memset(buffer, 0, sizeof(buffer));							// zero out the char buffer to receive a client message
+	// val = read(newsockfd, buffer, 1024);	// try to read from the client socket
+	// if (val == -1) {						// if the read from the client blew up, complain and exit
+	// 	perror("read");
+	// 	exit(EXIT_FAILURE);
+	// }
+	// printf("%s\n", buffer);
 	// for loop to read commands and text
 
 // try to write to the client socket
