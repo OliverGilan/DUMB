@@ -72,7 +72,7 @@ int main(int argc, char *argv[])
 	clilen = sizeof(cli_addr);			// determine the size of a clientAddressInfo struct
 
 
-	if ((newsockfd = accept(sockfd, (struct sockaddr *)&address, (socklen_t*)&clilen)) < 0)	// block until a client connects, when it does, create a client socket
+	if ((newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, (socklen_t*)&clilen)) < 0)	// block until a client connects, when it does, create a client socket
 	{
 		perror("accept");
 		exit(EXIT_FAILURE);
