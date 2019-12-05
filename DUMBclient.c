@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#include <errno.h>
 #include "sockets.h"
 
 
@@ -96,12 +97,15 @@ int main(int argc, char **argv)
         command[j] = (toupper(ch));
         j++;
     }
-    printf("%s\n", command);
 	// try to write it out to the server
 	if(strncmp(command, "HELLO", 5) == 0){
         printf("sending %s\n", command);
         send(sock, command, strlen(command), 0);
-        int valread = read(sock, buffer, 1024);
+        int bits = read(sock, buffer, 1024);
+        if(bits == -1){
+			printf("Error receiving data from client: %s\n", strerror(errno));	//Complain if something goes wrong
+		}
+        printf("%s\n", buffer);
     }
 	// if we couldn't write to the server for some reason, complain and exit
 	

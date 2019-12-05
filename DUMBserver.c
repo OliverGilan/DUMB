@@ -31,6 +31,12 @@ void* client(void* arg){
 		//Do something with data
 		printf("%s\n",buffer);
 
+		if(strncmp(buffer, "HELLO", 5) == 0){
+			printf("sending response\n");
+			char* response = "HELLO DUMBv0 ready!";
+			send(socket, response, strlen(response), 0);
+    	}
+
 		//Reset buffer
 		memset(buffer, 0, sizeof(buffer));
 	}
