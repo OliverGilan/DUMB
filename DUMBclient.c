@@ -18,6 +18,11 @@ void error(char *msg)
 
 int main(int argc, char **argv)
 {
+
+    if(argc < 3){
+        printf("Need a server IP and Port! \n");
+        exit(1);
+    }
 	// Declare initial vars
             // file descriptor for our socket
             int sock;
@@ -26,7 +31,7 @@ int main(int argc, char **argv)
             const char* port = argv[2];
             // utility variable - for monitoring reading/writing from/to the socket
             // char array to store data going to and coming from the server
-            char command[5];
+            char command[6];
             char buffer[1024];
             // Super-special secret C struct that holds address info for building our socket
             // Super-special secret C struct that holds info about a machine's address
@@ -73,24 +78,28 @@ int main(int argc, char **argv)
         int res = connect(sock, info->ai_addr, info->ai_addrlen);
         if(res < 0){
             error("connect()");
+            continue;
         }
+        break;
     }
-	
+	freeaddrinfo(info);
 	
 	/** If we're here, we're connected to the server .. w00t!  **/
 		
 	// zero out the message buffer
 
 	// get a message from the client
-    fgets(command, 5, stdin);
+    fgets(command, 6, stdin);
     int j = 0;
     while(command[j]){
         char ch = command[j];
         command[j] = (toupper(ch));
         j++;
     }
+    printf("%s\n", command);
 	// try to write it out to the server
 	if(strncmp(command, "HELLO", 5) == 0){
+        printf("sending %s\n", command);
         send(sock, command, strlen(command), 0);
         int valread = read(sock, buffer, 1024);
     }

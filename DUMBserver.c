@@ -41,9 +41,9 @@ int main(int argc, char *argv[])
 	portno = atoi(portRaw);						// convert the text representation of the port number given by the user to an int  
 
 
-	if ((socketfd = socket(AF_INET, SOCK_STREAM, 0)) == 0)	// try to build a socket .. if it doesn't work, complain and exit
+	if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == 0)	// try to build a socket .. if it doesn't work, complain and exit
 	{
-		perror("socket failed");
+		error("socket()");
 		exit(EXIT_FAILURE);
 	}
 
@@ -68,9 +68,9 @@ int main(int argc, char *argv[])
 		perror("listen");
 		exit(EXIT_FAILURE);
 	}
-
+	printf("Server listening on port: %d\n", portno);
 	clilen = sizeof(cli_addr);			// determine the size of a clientAddressInfo struct
-
+	
 
 	if ((newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, (socklen_t*)&clilen)) < 0)	// block until a client connects, when it does, create a client socket
 	{
@@ -82,12 +82,13 @@ int main(int argc, char *argv[])
 
 	// if the connection blew up for some reason, complain and exit
 
-	buffer = { 0 };							// zero out the char buffer to receive a client message
+	memset(buffer, 0, sizeof(buffer));							// zero out the char buffer to receive a client message
 	val = read(newsockfd, buffer, 1024);	// try to read from the client socket
 	if (val == -1) {						// if the read from the client blew up, complain and exit
 		perror("read");
 		exit(EXIT_FAILURE);
 	}
+	printf("%s\n", buffer);
 	// for loop to read commands and text
 
 // try to write to the client socket
