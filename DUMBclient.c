@@ -19,7 +19,7 @@ void error(char *msg)
 
 int main(int argc, char **argv)
 {
-
+    // If the user didn't enter enough arguments, complain and exit
     if(argc < 3){
         printf("Need a server IP and Port! \n");
         exit(1);
@@ -32,19 +32,13 @@ int main(int argc, char **argv)
             const char* port = argv[2];
             // utility variable - for monitoring reading/writing from/to the socket
             // char array to store data going to and coming from the server
-            char command[6];
+            char command[7];
             char buffer[1024];
             // Super-special secret C struct that holds address info for building our socket
             // Super-special secret C struct that holds info about a machine's address
             struct addrinfo* info = addStruct(hostname, port);
-	
-	
-	// If the user didn't enter enough arguments, complain and exit
     
 	
-	
-	/** If the user gave enough arguments, try to use them to get a port number and address **/
-
 	// convert the text representation of the port number given by the user to an int
 	
 	// look up the IP address that matches up with the name given - the name given might
@@ -100,10 +94,21 @@ int main(int argc, char **argv)
             j++;
         }
         //Command Cases
-        
+        if(strncmp(command, "QUIT", 4) == 0 || strncmp(command, "GDBYE", 5) == 0){
 
-        // try to write it out to the server
-        if(strncmp(command, "HELLO", 5) == 0){
+        }else if(strncmp(command, "CREATE", 6) == 0 || strncmp(command, "CREAT", 5) == 0){
+
+        }else if(strncmp(command, "DELETE", 6) == 0 || strncmp(command, "DELBX", 5) == 0){
+
+        }else if(strncmp(command, "OPEN", 4) == 0 || strncmp(command, "OPNBX", 5) == 0){
+
+        }else if(strncmp(command, "CLOSE", 5) == 0 || strncmp(command, "CLSBX", 5) == 0){
+
+        }else if(strncmp(command, "NEXT", 4) == 0 || strncmp(command, "NXTMG", 5) == 0){
+
+        }else if(strncmp(command, "PUT", 3) == 0 || strncmp(command, "PUTMG", 5) == 0){
+
+        }else if(strncmp(command, "HELLO", 5) == 0){
             printf("sending %s\n", command);
             if(write(sock, command, strlen(command)) < 0){
                 printf("Error sending data to server: %s\n", strerror(errno)); //Complain if something goes wrong
@@ -113,6 +118,10 @@ int main(int argc, char **argv)
                 printf("Error receiving data from client: %s\n", strerror(errno));	//Complain if something goes wrong
             }
             printf("%s\n", buffer);
+        }else if(strncmp(command, "HELP", 4) == 0){
+            
+        }else{
+            printf("That is not a command, for a command list enter 'help.'\n");
         }
         // if we couldn't write to the server for some reason, complain and exit
         
