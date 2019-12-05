@@ -7,6 +7,6 @@ serve: DUMBserver.c
 
 
 socketHelper.o: socketHelper.c
-	gcc -c socketHelper.c
+	gcc -c -std=c99 socketHelper.c
 
 clean: 
