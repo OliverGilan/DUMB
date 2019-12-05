@@ -89,34 +89,41 @@ int main(int argc, char **argv)
 		
 	// zero out the message buffer
 
-	// get a message from the client
-    fgets(command, 6, stdin);
-    int j = 0;
-    while(command[j]){
-        char ch = command[j];
-        command[j] = (toupper(ch));
-        j++;
+    while(1){
+        //Get a command from the client
+        fgets(command, 6, stdin);
+        //Converts to uppercase
+        int j = 0;
+        while(command[j]){
+            char ch = command[j];
+            command[j] = (toupper(ch));
+            j++;
+        }
+        //Command Cases
+        
+
+        // try to write it out to the server
+        if(strncmp(command, "HELLO", 5) == 0){
+            printf("sending %s\n", command);
+            if(write(sock, command, strlen(command)) < 0){
+                printf("Error sending data to server: %s\n", strerror(errno)); //Complain if something goes wrong
+            }
+            int bits = read(sock, buffer, 1024);
+            if(bits == -1){
+                printf("Error receiving data from client: %s\n", strerror(errno));	//Complain if something goes wrong
+            }
+            printf("%s\n", buffer);
+        }
+        // if we couldn't write to the server for some reason, complain and exit
+        
+        // sent message to the server, zero the buffer back out to read the server's response
+
+        // read a message from the server into the buffer
+        
+        // if we couldn't read from the server for some reason, complain and exit
+
+        // print out server's message
     }
-	// try to write it out to the server
-	if(strncmp(command, "HELLO", 5) == 0){
-        printf("sending %s\n", command);
-        send(sock, command, strlen(command), 0);
-        int bits = read(sock, buffer, 1024);
-        if(bits == -1){
-			printf("Error receiving data from client: %s\n", strerror(errno));	//Complain if something goes wrong
-		}
-        printf("%s\n", buffer);
-    }
-	// if we couldn't write to the server for some reason, complain and exit
-	
-	// sent message to the server, zero the buffer back out to read the server's response
-
-	// read a message from the server into the buffer
-	
-	// if we couldn't read from the server for some reason, complain and exit
-
-	// print out server's message
-
 
     return 0;
 }
