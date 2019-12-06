@@ -81,11 +81,15 @@ int main(int argc, char **argv)
 	
 	/** If we're here, we're connected to the server .. w00t!  **/
 		
-	// zero out the message buffer
-
+    printf("> ");
     while(1){
+        // zero out the message buffer
+        memset(buffer, 0, sizeof(buffer));
+        memset(command, 0, sizeof(command));
+
         //Get a command from the client
         fgets(command, 6, stdin);
+
         //Converts to uppercase
         int j = 0;
         while(command[j]){
@@ -93,33 +97,75 @@ int main(int argc, char **argv)
             command[j] = (toupper(ch));
             j++;
         }
-        //Command Cases
+
+        //Handle each command differently
         if(strncmp(command, "QUIT", 4) == 0 || strncmp(command, "GDBYE", 5) == 0){
+            if(write(sock, "GDBYE", 5) < 0){ //Send to server
+                printf("Error sending data to server: %s\n", strerror(errno)); //Complain if something goes wrong
+            }
+
+            //Check for success
+            int bitsread = read(sock, buffer, sizeof(buffer));
+            if(bitsread !=0){
+                printf("Error, data received from server: %s\n", buffer);
+            }else if (bitsread == 0){
+                exit(0);
+            }
 
         }else if(strncmp(command, "CREATE", 6) == 0 || strncmp(command, "CREAT", 5) == 0){
+            printf("Okay, what should the message box name be?\ncreate:> ");
+            fgets(buffer, 26, stdin);
+
+            //Keep asking for input until it is well formed
+            while(strlen(buffer) < 5 || strlen(buffer) > 25 || !isalpha(buffer[0])){
+                printf("Error: Message box name must be within 5 and 25 characters long and start with an alphabetic character!\n");
+                fgets(buffer, 26, stdin);
+            }
+
+            //Create whole command
+            char* complete[32];
+            strncpy(complete, "CREAT ", 6);
+            strncat(complete, buffer, 25);
+            
+            //Send command to server
+            if(write(sock, complete, 5) < 0){
+                printf("Error sending data to server: %s\n", strerror(errno)); //Complain if something goes wrong
+            }
+            //Expect response
+
 
         }else if(strncmp(command, "DELETE", 6) == 0 || strncmp(command, "DELBX", 5) == 0){
-
+            printf("Okay, what's the name of the box you wish to delete?\ndelete:> ");
         }else if(strncmp(command, "OPEN", 4) == 0 || strncmp(command, "OPNBX", 5) == 0){
-
+            printf("Okay, open which message box?\nopen:> ");
         }else if(strncmp(command, "CLOSE", 5) == 0 || strncmp(command, "CLSBX", 5) == 0){
-
+            printf("Okay, just confirm the name of the box you have open right now...\nclose:> ");
         }else if(strncmp(command, "NEXT", 4) == 0 || strncmp(command, "NXTMG", 5) == 0){
-
+            if(write(sock, "NEXTMG", 5) < 0){
+                printf("Error sending data to server: %s\n", strerror(errno)); //Complain if something goes wrong
+            }
         }else if(strncmp(command, "PUT", 3) == 0 || strncmp(command, "PUTMG", 5) == 0){
+            printf("Okay, how many bytes will your message be?\nput:> ");
+            //Get bytes
+            printf("Sounds good. What message would you like to send?\nput:> ");
 
         }else if(strncmp(command, "HELLO", 5) == 0){
-            printf("sending %s\n", command);
+            //Send to server
             if(write(sock, command, strlen(command)) < 0){
                 printf("Error sending data to server: %s\n", strerror(errno)); //Complain if something goes wrong
             }
+
+            //Check for response
             int bits = read(sock, buffer, 1024);
             if(bits == -1){
                 printf("Error receiving data from client: %s\n", strerror(errno));	//Complain if something goes wrong
             }
             printf("%s\n", buffer);
+
         }else if(strncmp(command, "HELP", 4) == 0){
-            
+            //Print help message
+            printf("%s\n", helpMessage);
+
         }else{
             printf("That is not a command, for a command list enter 'help.'\n");
         }
