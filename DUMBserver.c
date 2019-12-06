@@ -6,7 +6,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
+#include <arpa/inet.h>
 #include <pthread.h>
+
+int portno;
 
 void error(char *msg)
 {
@@ -14,34 +17,40 @@ void error(char *msg)
 	exit(1);
 }
 
-void* client(void* arg){
+void* client(void* arg) {
 	int socket = *(int*)arg;
 
-	printf("%d connected\n", socket);
+	// port number, date, ip address
+
+	printf("%i connected\n", portno);
 
 	//Wait for data to come in from client
 	char buffer[1024];
-	while(1){
+	while (1) {
 		int bits = read(socket, buffer, sizeof(buffer));	//Read data from socket
-		if(bits == -1){
+		if (bits == -1) {
 			printf("Error receiving data from client: %s\n", strerror(errno));	//Complain if something goes wrong
 		}
-		if(bits == 0){break;} //Needs a break clause. Temp for now.
-		
-		//Do something with data
-		printf("%s\n",buffer);
+		if (bits == 0) { break; } //Needs a break clause. Temp for now.
 
-		if(strncmp(buffer, "HELLO", 5) == 0){
-			printf("sending response\n");
+		//Do something with data
+		printf("%i %s\n", portno, buffer);
+
+		if (strncmp(buffer, "HELLO", 5) == 0) {
 			char* response = "HELLO DUMBv0 ready!";
 			send(socket, response, strlen(response), 0);
-    	}
+		}
+		if (strncmp(buffer, "GDBYE", 5) == 0) {
+			char* response = "GDBYE DUMBv0";
+			send(socket, response, strlen(response), 0);
+			break;
+		}
 
 		//Reset buffer
 		memset(buffer, 0, sizeof(buffer));
 	}
 
-	printf("%d disconnected\n", socket);
+	printf("%i disconnected\n", portno, socket);
 
 	return NULL;
 }
@@ -51,7 +60,7 @@ int main(int argc, char *argv[])
 	// file descriptor for our server socket:
 	// file descriptor for a client socket:
 	// server port to connect to:
-	int sockfd, newsockfd, portno, clilen;
+	int sockfd, newsockfd, clilen;
 
 	struct sockaddr_in serv_addr;	// Super-special secret C struct that holds address info for building our server socket
 	struct sockaddr_in cli_addr;	// Super-special secret C struct that holds address info about our client socket
@@ -104,11 +113,14 @@ int main(int argc, char *argv[])
 	}
 	printf("Server listening on port: %d\n", portno);
 	clilen = sizeof(cli_addr);			// determine the size of a clientAddressInfo struct
-	
+
 
 	pthread_t thread;
-	while((newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, (socklen_t*)&clilen)))	// block until a client connects, when it does, create a client socket
+	while ((newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, (socklen_t*)&clilen)))	// block until a client connects, when it does, create a client socket
 	{
+		cli_addr.sin_addr.s_addr;
+		char* s = malloc(INET_ADDRSTRLEN);
+		inet_ntop(AF_INET, &(cli_addr.sin_addr), s, INET_ADDRSTRLEN);
 		pthread_create(&thread, NULL, client, (void*)&newsockfd);
 		pthread_detach(thread);
 	}

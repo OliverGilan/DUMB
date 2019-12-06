@@ -13,8 +13,8 @@
 
 void error(char *msg)
 {
-    perror(msg);
-    exit(0);
+	perror(msg);
+	exit(0);
 }
 
 int main(int argc, char **argv)
@@ -40,24 +40,24 @@ int main(int argc, char **argv)
     
 	
 	// convert the text representation of the port number given by the user to an int
-	
+
 	// look up the IP address that matches up with the name given - the name given might
 	//    BE an IP address, which is fine, and store it in the 'serverIPAddress' struct
-    				
-	// try to build a socket .. if it doesn't work, complain and exit
-    sock = socket(info->ai_family, SOCK_STREAM, 0);
-    if(sock < 0){
-        error("socket()");
-    }
 
-	
+	// try to build a socket .. if it doesn't work, complain and exit
+	sock = socket(info->ai_family, SOCK_STREAM, 0);
+	if (sock < 0) {
+		error("socket()");
+	}
+
+
 	/** We now have the IP address and port to connect to on the server, we have to get    **/
 	/**   that information into C's special address struct for connecting sockets                     **/
 
 	// zero out the socket address info struct .. always initialize!
 
 	// set a flag to indicate the type of network address we'll be using 
-	
+
 	// set the remote port .. translate from a 'normal' int to a super-special 'network-port-int'
 
 	// do a raw copy of the bytes that represent the server's IP address in 
@@ -66,19 +66,19 @@ int main(int argc, char **argv)
 
 
 	/** We now have a blank socket and a fully parameterized address info struct .. time to connect **/
-	
+
 	// try to connect to the server 3 times using our blank socket and the address info struct 
 	//   if it doesn't work, complain and exit
-    for(int i = 0; i < 3; i++){
-        int res = connect(sock, info->ai_addr, info->ai_addrlen);
-        if(res < 0){
-            error("connect()");
-            continue;
-        }
-        break;
-    }
+	for (int i = 0; i < 3; i++) {
+		int res = connect(sock, info->ai_addr, info->ai_addrlen);
+		if (res < 0) {
+			error("connect()");
+			continue;
+		}
+		break;
+	}
 	freeaddrinfo(info);
-	
+
 	/** If we're here, we're connected to the server .. w00t!  **/
 		
     printf("> ");
