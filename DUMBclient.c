@@ -32,7 +32,7 @@ int main(int argc, char **argv)
 	const char* port = argv[2];
 	// utility variable - for monitoring reading/writing from/to the socket
 	// char array to store data going to and coming from the server
-	char command[7];
+	char command[6];
 	char buffer[1024];
 	// Super-special secret C struct that holds address info for building our socket
 	// Super-special secret C struct that holds info about a machine's address
@@ -90,6 +90,7 @@ int main(int argc, char **argv)
 	if (bits == -1) {
 		printf("Error receiving data from server: %s\n", strerror(errno));	//Complain if something goes wrong
 	}
+    printf("%s\n",buffer);
 
 	//Accept user input
 	while (1) {
@@ -99,7 +100,7 @@ int main(int argc, char **argv)
 		memset(command, 0, sizeof(command));
 
 		//Get a command from the client
-		fgets(command, 6, stdin);
+		fscanf(stdin, "%s", command);
 
 		//Converts to uppercase
 		int j = 0;
@@ -108,7 +109,8 @@ int main(int argc, char **argv)
 			command[j] = (toupper(ch));
 			j++;
 		}
-
+        command[5] = '\0';
+        // printf("com: %s\n",command);
 		//Handle each command differently
 		if (strncmp(command, "QUIT", 4) == 0 || strncmp(command, "GDBYE", 5) == 0) {
 			if (write(sock, "GDBYE", 5) < 0) { //Send to server
@@ -128,7 +130,9 @@ int main(int argc, char **argv)
 		}
 		else if (strncmp(command, "CREATE", 6) == 0 || strncmp(command, "CREAT", 5) == 0) {
 			printf("Okay, what should the message box name be?\ncreate:> ");
+            getchar();
 			fgets(buffer, 26, stdin);
+            // printf("buffer: %s", buffer);
 			//Keep asking for input until it is well formed
 			while (strlen(buffer) < 5 || strlen(buffer) > 25 || !isalpha(buffer[0])) {
 				printf("Error: Message box name must be within 5 and 25 characters long and start with an alphabetic character!\n");
