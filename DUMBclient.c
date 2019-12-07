@@ -241,18 +241,31 @@ int main(int argc, char **argv)
 		else if (strncmp(command, "PUT", 3) == 0 || strncmp(command, "PUTMG", 5) == 0) {
 			printf("Okay, how many bytes will your message be?\nput:> ");
 			//Get bytes
-			unsigned long* bytes;
-			fscanf("%lu", bytes);
+			unsigned long bytes;
+			fscanf(stdin, "%lu", &bytes);
 			if (bytes == 0) { printf("No message will be created\n"); continue; }
 
 			//Get message
-			printf("Sounds good. What message would you like to send?\nput:> ");
-			char* message;
-			scanf("%ms", &message); //variable length input
+			printf("Sounds good. What message would you like to send?\nput:>");
+			char* message = (char*)malloc(1024);
+            unsigned long currentSize = 1024; 
+            char c = EOF;
+			// scanf("%s", &message); //variable length input
+            unsigned long i = 0;
+            getchar(); //clear buffer
+            while((fscanf(stdin, "%c", &c)) != '0' && c != '\n'){
+                message[i++] = c;
+
+                if(i==currentSize){
+                    currentSize = i + currentSize;
+                    message = realloc(message, currentSize);
+                }
+            }
+            message[i] = '\0';
 			char data[7 + sizeof(message)];
 			strncpy(data, "PUTMG ", 6);
 			strncat(data, message, sizeof(message));
-
+            free(message);
 			//Send to server
 			if (write(sock, data, sizeof(data)) < 0) {
 				printf("Error sending data to server: %s\n", strerror(errno)); //Complain if something goes wrong
@@ -280,7 +293,7 @@ int main(int argc, char **argv)
 		}
 		else if (strncmp(command, "HELP", 4) == 0) {
 			//Print help message
-			printf("%s\n", helpMessage);
+			printf("%s\n", helpMsg);
 
 		}
 		else {
