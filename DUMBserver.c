@@ -166,7 +166,7 @@ int alreadyExists(char* name, List * list) {
 // SERVER CODE
 
 int portno;
-List* list = makelist();
+List* list;
 
 void error(char *msg)
 {
@@ -206,14 +206,14 @@ void* client(void* arg) {
 			char* response = "OK!";
 			Queue *msgBox = ConstructQueue();
 			char* name[strlen(buffer) - 6];
-			for (int i = 6; i < strlen(buffer), i++) {
+			for (int i = 6; i < strlen(buffer); i++) {
 				name[i - 6] = buffer[i];
 			}
 			if (alreadyExists(name, list)) {
 				response = "ER:EXIST";
 			}
 			else {
-				add(name, msgBox, list);
+				add(name, *msgBox, list);
 			}
 			send(socket, response, strlen(response), 0);
 		}
@@ -232,6 +232,8 @@ int main(int argc, char *argv[])
 	// file descriptor for our server socket:
 	// file descriptor for a client socket:
 	// server port to connect to:
+
+	list = makelist();
 	int sockfd, newsockfd, clilen;
 
 	struct sockaddr_in serv_addr;	// Super-special secret C struct that holds address info for building our server socket
