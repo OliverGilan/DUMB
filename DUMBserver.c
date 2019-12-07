@@ -206,14 +206,14 @@ void* client(void* arg) {
 			char* response = "OK!";
 			Queue *msgBox = ConstructQueue();
 			char* name[strlen(buffer) - 6];
-			for (int i = 6; i < strlen(buffer), i++) {
+			for (int i = 6; i < strlen(buffer); i++){
 				name[i - 6] = buffer[i];
 			}
 			if (alreadyExists(name, list)) {
 				response = "ER:EXIST";
 			}
 			else {
-				add(name, msgBox, list);
+				add(name, *msgBox, list);
 			}
 			send(socket, response, strlen(response), 0);
 		}
