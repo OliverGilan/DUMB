@@ -11,12 +11,8 @@
 
 // MESSAGE BOX
 
-typedef struct {
+typedef struct Node_t { // message in queue
 	char* message;
-} MESSAGE;
-
-typedef struct Node_t { // node in queue
-	MESSAGE msg;
 	struct Node_t *prev;
 } NODE;
 
@@ -142,7 +138,7 @@ void delete(char* name, List * list) {
 	listNODE * current = list->head;
 	listNODE * previous = current;
 	while (current != NULL) {
-		if (current->name == name) {
+		if (strcmp(current->name, name)) {
 			previous->next = current->next;
 			if (current == list->head)
 				list->head = current->next;
@@ -154,9 +150,23 @@ void delete(char* name, List * list) {
 	}
 }
 
+int alreadyExists(char* name, List * list) {
+	listNODE * current = list->head;
+	listNODE * previous = current;
+	while (current != NULL) {
+		if (strcmp(current->name, name)) {
+			return 1;
+		}
+		previous = current;
+		current = current->next;
+	}
+	return 0;
+}
+
 // SERVER CODE
 
 int portno;
+List* list = makelist();
 
 void error(char *msg)
 {
@@ -191,6 +201,21 @@ void* client(void* arg) {
 			char* response = "GDBYE DUMBv0";
 			send(socket, response, strlen(response), 0);
 			break;
+		}
+		if (strstr(buffer, "CREAT") != 0) {
+			char* response = "OK!";
+			Queue *msgBox = ConstructQueue();
+			char* name[strlen(buffer) - 6];
+			for (int i = 6; i < strlen(buffer), i++) {
+				name[i - 6] = buffer[i];
+			}
+			if (alreadyExists(name, list)) {
+				response = "ER:EXIST";
+			}
+			else {
+				add(name, msgBox, list);
+			}
+			send(socket, response, strlen(response), 0);
 		}
 
 		//Reset buffer
