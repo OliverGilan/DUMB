@@ -80,9 +80,20 @@ int main(int argc, char **argv)
 	freeaddrinfo(info);
 
 	/** If we're here, we're connected to the server .. w00t!  **/
-		
-    printf("> ");
+	//Check if server is listening
+    if(write(sock, "HELLO", 5) < 0){
+        printf("Error sending data to server: %s\n", strerror(errno)); //Complain if something goes wrong
+        exit(1);
+    }
+    //Check for response
+    int bits = read(sock, buffer, 1024);
+    if(bits == -1){
+        printf("Error receiving data from server: %s\n", strerror(errno));	//Complain if something goes wrong
+    }
+
+    //Accept user input
     while(1){
+        printf("> ");
         // zero out the message buffer
         memset(buffer, 0, sizeof(buffer));
         memset(command, 0, sizeof(command));
@@ -102,6 +113,7 @@ int main(int argc, char **argv)
         if(strncmp(command, "QUIT", 4) == 0 || strncmp(command, "GDBYE", 5) == 0){
             if(write(sock, "GDBYE", 5) < 0){ //Send to server
                 printf("Error sending data to server: %s\n", strerror(errno)); //Complain if something goes wrong
+                continue;
             }
 
             //Check for success
@@ -123,31 +135,121 @@ int main(int argc, char **argv)
             }
 
             //Create whole command
-            char* complete[32];
+            char complete[32];
             strncpy(complete, "CREAT ", 6);
             strncat(complete, buffer, 25);
             
             //Send command to server
-            if(write(sock, complete, 5) < 0){
+            if(write(sock, complete, sizeof(complete)) < 0){
                 printf("Error sending data to server: %s\n", strerror(errno)); //Complain if something goes wrong
+                continue;
             }
             //Expect response
 
 
         }else if(strncmp(command, "DELETE", 6) == 0 || strncmp(command, "DELBX", 5) == 0){
             printf("Okay, what's the name of the box you wish to delete?\ndelete:> ");
+            fgets(buffer, 26, stdin);
+            
+            //Check if message box name is well formed
+            if(strlen(buffer) < 5 || strlen(buffer) > 25 || !isalpha(buffer[0])){
+                printf("Error: Command was unsuccessful - [poorly formatted box name] - please try again\n");
+                continue;
+            }
+
+            //Create whole command
+            char complete[32];
+            strncpy(complete, "DELBX ", 6);
+            strncat(complete, buffer, 25);
+
+            //Send command to server
+            if(write(sock, complete, sizeof(complete)) < 0){
+                printf("Error sending data to server: %s\n", strerror(errno)); //Complain if something goes wrong
+                continue;
+            }
+            //Expect response
+
+
         }else if(strncmp(command, "OPEN", 4) == 0 || strncmp(command, "OPNBX", 5) == 0){
             printf("Okay, open which message box?\nopen:> ");
+            fgets(buffer, 26, stdin);
+            
+            //Check if message box name is well formed
+            if(strlen(buffer) < 5 || strlen(buffer) > 25 || !isalpha(buffer[0])){
+                printf("Error: Command was unsuccessful - [poorly formatted box name] - please try again\n");
+                continue;
+            }
+
+            //Create whole command
+            char complete[32];
+            strncpy(complete, "DELBX ", 6);
+            strncat(complete, buffer, 25);
+
+            //Send command to server
+            if(write(sock, complete, sizeof(complete)) < 0){
+                printf("Error sending data to server: %s\n", strerror(errno)); //Complain if something goes wrong
+                continue;
+            }
+            //Expect response
+
+
         }else if(strncmp(command, "CLOSE", 5) == 0 || strncmp(command, "CLSBX", 5) == 0){
             printf("Okay, just confirm the name of the box you have open right now...\nclose:> ");
+            fgets(buffer, 26, stdin);
+            
+            //Check if message box name is well formed
+            if(strlen(buffer) < 5 || strlen(buffer) > 25 || !isalpha(buffer[0])){
+                printf("Error: Command was unsuccessful - [poorly formatted box name] - please try again\n");
+                continue;
+            }
+
+            //Create whole command
+            char complete[32];
+            strncpy(complete, "DELBX ", 6);
+            strncat(complete, buffer, 25);
+
+            //Send command to server
+            if(write(sock, complete, sizeof(complete)) < 0){
+                printf("Error sending data to server: %s\n", strerror(errno)); //Complain if something goes wrong
+                continue;
+            }
+            //Expect response
+
+
         }else if(strncmp(command, "NEXT", 4) == 0 || strncmp(command, "NXTMG", 5) == 0){
+            //Send command to server
             if(write(sock, "NEXTMG", 5) < 0){
                 printf("Error sending data to server: %s\n", strerror(errno)); //Complain if something goes wrong
+                continue;
             }
+
+            //Expect response
+
+
         }else if(strncmp(command, "PUT", 3) == 0 || strncmp(command, "PUTMG", 5) == 0){
             printf("Okay, how many bytes will your message be?\nput:> ");
             //Get bytes
+            unsigned long* bytes;
+            fscanf("%lu", bytes);
+            if(bytes == 0){printf("No message will be created\n");continue;}
+            
+            //Get message
             printf("Sounds good. What message would you like to send?\nput:> ");
+            char* message;
+            scanf("%ms", &message); //variable length input
+            char data[7 + sizeof(message)];
+            strncpy(data, "PUTMG ", 6);
+            strncat(data, message, sizeof(message));
+
+            //Send to server
+            if(write(sock, data, sizeof(data)) < 0){
+                printf("Error sending data to server: %s\n", strerror(errno)); //Complain if something goes wrong
+                continue;
+            }
+
+            //Expect response
+
+
 
         }else if(strncmp(command, "HELLO", 5) == 0){
             //Send to server
@@ -158,9 +260,9 @@ int main(int argc, char **argv)
             //Check for response
             int bits = read(sock, buffer, 1024);
             if(bits == -1){
-                printf("Error receiving data from client: %s\n", strerror(errno));	//Complain if something goes wrong
+                printf("Error receiving data from server: %s\n", strerror(errno));	//Complain if something goes wrong
             }
-            printf("%s\n", buffer);
+            // printf("%s\n", buffer);
 
         }else if(strncmp(command, "HELP", 4) == 0){
             //Print help message
