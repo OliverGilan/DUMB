@@ -9,6 +9,153 @@
 #include <arpa/inet.h>
 #include <pthread.h>
 
+// MESSAGE BOX
+
+typedef struct {
+	char* message;
+} MESSAGE;
+
+typedef struct Node_t { // node in queue
+	MESSAGE msg;
+	struct Node_t *prev;
+} NODE;
+
+typedef struct Queue { // head of queue
+	NODE *head;
+	NODE *tail;
+	int size;  // num. messages in box
+} Queue;
+
+Queue *ConstructQueue();
+void freeQueue(Queue *queue);
+int Enqueue(Queue *pQueue, NODE *item);
+NODE *Dequeue(Queue *pQueue);
+int isEmpty(Queue* pQueue);
+
+Queue *ConstructQueue() {
+	Queue *queue = (Queue*)malloc(sizeof(Queue));
+	if (queue == NULL) {
+		return NULL;
+	}
+	queue->size = 0;
+	queue->head = NULL;
+	queue->tail = NULL;
+
+	return queue;
+}
+
+void freeQueue(Queue *queue) {
+	NODE *pN;
+	while (!isEmpty(queue)) {
+		pN = Dequeue(queue);
+		free(pN);
+	}
+	free(queue);
+}
+
+int Enqueue(Queue *pQueue, NODE *item) {
+	if ((pQueue == NULL) || (item == NULL))
+		return 0;
+
+	item->prev = NULL;
+	if (pQueue->size == 0) {
+		pQueue->head = item;
+		pQueue->tail = item;
+	}
+	else {
+		pQueue->tail->prev = item;
+		pQueue->tail = item;
+	}
+	pQueue->size++;
+	return 1;
+}
+
+NODE * Dequeue(Queue *pQueue) {
+	NODE *item;
+	if (isEmpty(pQueue))
+		return NULL;
+	item = pQueue->head;
+	pQueue->head = (pQueue->head)->prev;
+	pQueue->size--;
+	return item;
+}
+
+int isEmpty(Queue* pQueue) {
+	if (pQueue == NULL) {
+		return 0;
+	}
+	if (pQueue->size == 0) {
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
+
+// MESSAGE BOX LIST
+
+typedef struct node {
+	char* name;
+	Queue messageBox;
+	struct node * next;
+} listNODE;
+
+typedef struct list {
+	listNODE * head;
+} List;
+
+listNODE * createnode(char* name, Queue msgBox) {
+	listNODE * newNode = malloc(sizeof(listNODE));
+	if (!newNode) {
+		return NULL;
+	}
+	newNode->name = name;
+	newNode->messageBox = msgBox;
+	newNode->next = NULL;
+	return newNode;
+}
+
+List * makelist() {
+	List * list = malloc(sizeof(List));
+	if (!list) {
+		return NULL;
+	}
+	list->head = NULL;
+	return list;
+}
+
+void add(char* name, Queue msgBox, List * list) {
+	listNODE * current = NULL;
+	if (list->head == NULL) {
+		list->head = createnode(name, msgBox);
+	}
+	else {
+		current = list->head;
+		while (current->next != NULL) {
+			current = current->next;
+		}
+		current->next = createnode(name, msgBox);
+	}
+}
+
+void delete(char* name, List * list) {
+	listNODE * current = list->head;
+	listNODE * previous = current;
+	while (current != NULL) {
+		if (current->name == name) {
+			previous->next = current->next;
+			if (current == list->head)
+				list->head = current->next;
+			free(current);
+			return;
+		}
+		previous = current;
+		current = current->next;
+	}
+}
+
+// SERVER CODE
+
 int portno;
 
 void error(char *msg)
