@@ -10,7 +10,6 @@
 #include <pthread.h>
 
 // MESSAGE BOX
-
 typedef struct Node_t { // message in queue
 	char* message;
 	struct Node_t *prev;
@@ -213,6 +212,9 @@ void* client(void* arg) {
 			}
 			send(socket, response, strlen(response), 0);
 		}
+		else if(strstr(buffer, "DELBX") != NULL){
+			
+		}
 		else {
 			char* response = "ER:WHAT?";
 			send(socket, response, strlen(response), 0);
@@ -232,7 +234,6 @@ int main(int argc, char *argv[])
 	// file descriptor for our server socket:
 	// file descriptor for a client socket:
 	// server port to connect to:
-
 	list = makelist();
 	int sockfd, newsockfd, clilen;
 

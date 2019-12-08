@@ -31,6 +31,7 @@ int main(int argc, char **argv)
 	const char* hostname = argv[1];
 	const char* port = argv[2];
 	// utility variable - for monitoring reading/writing from/to the socket
+	char helpMsg[] = "List of Commands:\n'hello' \t {HELLO} - Check if server is listening\n'quit' \t {GDBYE} - Disconnect from server\n'create' \t {CREAT} - Create new message box\n'delete' \t {DELBX} - Delete message box\n'open' \t {OPNBX} - Open message box\n'close' \t {CLSBX} - Close message box\n'next' \t {NXTMG} - Get next message\n'put' \t {PUTMG} - Add new message to box\n";
 	// char array to store data going to and coming from the server
 	char command[7];
 	char buffer[1024];
@@ -111,7 +112,7 @@ int main(int argc, char **argv)
 		}
 		// command[5] = '\0';
 		//Handle each command differently
-		if (strncmp(command, "QUIT", 4) == 0 || strncmp(command, "GDBYE", 5) == 0) {
+		if (strcmp(command, "QUIT") == 0 || strcmp(command, "GDBYE") == 0) {
 			if (write(sock, "GDBYE", 5) < 0) { //Send to server
 				printf("Error sending data to server: %s\n", strerror(errno)); //Complain if something goes wrong
 				continue;
@@ -144,11 +145,15 @@ int main(int argc, char **argv)
 			}
 
 			//Expect response FIX
+			memset(buffer, 0, sizeof(buffer));
 			int bitsread = read(sock, buffer, sizeof(buffer));
 			if (bitsread != 0) {
-				printf("%s\n", buffer);
+				// if(strncmp(buffer, "OK!", 3) == 0){
+					printf("%s\n", buffer);
+				// }
 			}
 			else if (bitsread == 0) {
+				printf("Error receiving data from server!\n");
 				exit(0);
 			}
 		}
