@@ -130,20 +130,23 @@ int main(int argc, char **argv)
 		}
 		else if (strncmp(command, "CREATE", 6) == 0 || strncmp(command, "CREAT", 5) == 0) {
 			printf("Okay, what should the message box name be?\ncreate:> ");
-            getchar();
-			fgets(buffer, 26, stdin);
-            // printf("buffer: %s", buffer);
+            // getchar();
+			fscanf(stdin, " %s", buffer);
+            printf("buffer: %s", buffer);
 			//Keep asking for input until it is well formed
-			while (strlen(buffer) < 5 || strlen(buffer) > 25 || !isalpha(buffer[0])) {
+			if(strlen(buffer) < 5 || strlen(buffer) > 25 || !isalpha(buffer[0])) {
 				printf("Error: Message box name must be within 5 and 25 characters long and start with an alphabetic character!\n");
-				fgets(buffer, 26, stdin);
+				// fgets(buffer, 26, stdin);
+                continue;
 			}
 
 			//Create whole command
 			char complete[32];
+            memset(complete, 0, 32);
+            printf("complete1: %s\n", complete);
 			strncpy(complete, "CREAT ", 6);
 			strncat(complete, buffer, 25);
-
+            printf("complete: %s\n", complete);
 			//Send command to server
 			if (write(sock, complete, sizeof(complete)) < 0) {
 				printf("Error sending data to server: %s\n", strerror(errno)); //Complain if something goes wrong
