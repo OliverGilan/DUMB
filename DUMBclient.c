@@ -32,7 +32,7 @@ int main(int argc, char **argv)
 	const char* port = argv[2];
 	// utility variable - for monitoring reading/writing from/to the socket
 	// char array to store data going to and coming from the server
-	char command[6];
+	char command[7];
 	char buffer[1024];
 	// Super-special secret C struct that holds address info for building our socket
 	// Super-special secret C struct that holds info about a machine's address
@@ -109,8 +109,7 @@ int main(int argc, char **argv)
 			command[j] = (toupper(ch));
 			j++;
 		}
-        command[5] = '\0';
-        // printf("com: %s\n",command);
+        // command[5] = '\0';
 		//Handle each command differently
 		if (strncmp(command, "QUIT", 4) == 0 || strncmp(command, "GDBYE", 5) == 0) {
 			if (write(sock, "GDBYE", 5) < 0) { //Send to server
@@ -128,11 +127,9 @@ int main(int argc, char **argv)
 			}
 
 		}
-		else if (strncmp(command, "CREATE", 6) == 0 || strncmp(command, "CREAT", 5) == 0) {
+		else if (strcmp(command, "CREATE") == 0 || strcmp(command, "CREAT") == 0) {
 			printf("Okay, what should the message box name be?\ncreate:> ");
-            // getchar();
 			fscanf(stdin, " %s", buffer);
-            printf("buffer: %s", buffer);
 			//Keep asking for input until it is well formed
 			if(strlen(buffer) < 5 || strlen(buffer) > 25 || !isalpha(buffer[0])) {
 				printf("Error: Message box name must be within 5 and 25 characters long and start with an alphabetic character!\n");
@@ -143,10 +140,8 @@ int main(int argc, char **argv)
 			//Create whole command
 			char complete[32];
             memset(complete, 0, 32);
-            printf("complete1: %s\n", complete);
 			strncpy(complete, "CREAT ", 6);
 			strncat(complete, buffer, 25);
-            printf("complete: %s\n", complete);
 			//Send command to server
 			if (write(sock, complete, sizeof(complete)) < 0) {
 				printf("Error sending data to server: %s\n", strerror(errno)); //Complain if something goes wrong
