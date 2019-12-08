@@ -158,6 +158,17 @@ int alreadyExists(char* name, List * list) {
 	return 0;
 }
 
+listNODE* getBox(char* name, List* list){
+	listNODE * current = list->head;
+	while (current != NULL) {
+		if (strcmp(current->name, name) == 0) {
+			return current;
+		}
+		current = current->next;
+	}
+	return NULL;
+}
+
 // SERVER CODE
 
 int portno;
@@ -213,7 +224,20 @@ void* client(void* arg) {
 			send(socket, response, strlen(response), 0);
 		}
 		else if(strstr(buffer, "DELBX") != NULL){
+			char* response = "OK!";
+			char* name = strstr(buffer, " ");
+			if(alreadyExists(name, list)){
+				listNODE* box = getBox(name, list);
+				if(!isEmpty(&(box->messageBox))){
+					response = "ER: NOTMT";
+				}
+				// else if(){} IF OPEN
+				delete(name, list);
+			}else if(alreadyExists(name,list)){
+				response = "ER:NEXST";
+			}
 			
+			send(socket, response, strlen(response), 0);
 		}
 		else {
 			char* response = "ER:WHAT?";
