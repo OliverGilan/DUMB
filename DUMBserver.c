@@ -102,10 +102,8 @@ typedef struct list {
 
 listNODE * createnode(char* name, Queue msgBox) {
 	listNODE * newNode = malloc(sizeof(listNODE));
-	if (!newNode) {
-		return NULL;
-	}
-	newNode->name = name;
+	newNode->name = malloc(sizeof(name));
+	strcpy(newNode->name, name);
 	newNode->messageBox = msgBox;
 	newNode->next = NULL;
 	return newNode;
@@ -152,12 +150,10 @@ void delete(char* name, List * list) {
 
 int alreadyExists(char* name, List * list) {
 	listNODE * current = list->head;
-	listNODE * previous = current;
 	while (current != NULL) {
-		if (strcmp(current->name, name)) {
+		if (strcmp(current->name, name) == 0) {
 			return 1;
 		}
-		previous = current;
 		current = current->next;
 	}
 	return 0;
@@ -184,6 +180,9 @@ void* client(void* arg) {
 	//Wait for data to come in from client
 	char buffer[1024];
 	while (1) {
+		for (int i = 0; i < 1024; i++) {
+			buffer[i] = '\0';
+		}
 		int bits = read(socket, buffer, sizeof(buffer));	//Read data from socket
 		if (bits == -1) {
 			printf("Error receiving data from client: %s\n", strerror(errno));	//Complain if something goes wrong
@@ -197,24 +196,25 @@ void* client(void* arg) {
 			char* response = "HELLO DUMBv0 ready!";
 			send(socket, response, strlen(response), 0);
 		}
-		if (strncmp(buffer, "GDBYE", 5) == 0) {
+		else if (strncmp(buffer, "GDBYE", 5) == 0) {
 			char* response = "GDBYE DUMBv0";
 			send(socket, response, strlen(response), 0);
 			break;
 		}
-		if (strstr(buffer, "CREAT") != 0) {
+		else if (strstr(buffer, "CREAT") != NULL) {
 			char* response = "OK!";
 			Queue *msgBox = ConstructQueue();
-			char* name[strlen(buffer) - 6];
-			for (int i = 6; i < strlen(buffer); i++) {
-				name[i - 6] = buffer[i];
-			}
+			char* name = strstr(buffer, " ");
 			if (alreadyExists(name, list)) {
 				response = "ER:EXIST";
 			}
 			else {
 				add(name, *msgBox, list);
 			}
+			send(socket, response, strlen(response), 0);
+		}
+		else {
+			char* response = "ER:WHAT?";
 			send(socket, response, strlen(response), 0);
 		}
 

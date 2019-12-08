@@ -90,7 +90,7 @@ int main(int argc, char **argv)
 	if (bits == -1) {
 		printf("Error receiving data from server: %s\n", strerror(errno));	//Complain if something goes wrong
 	}
-    printf("%s\n",buffer);
+	printf("%s\n", buffer);
 
 	//Accept user input
 	while (1) {
@@ -109,7 +109,7 @@ int main(int argc, char **argv)
 			command[j] = (toupper(ch));
 			j++;
 		}
-        // command[5] = '\0';
+		// command[5] = '\0';
 		//Handle each command differently
 		if (strncmp(command, "QUIT", 4) == 0 || strncmp(command, "GDBYE", 5) == 0) {
 			if (write(sock, "GDBYE", 5) < 0) { //Send to server
@@ -119,27 +119,22 @@ int main(int argc, char **argv)
 
 			//Check for success
 			int bitsread = read(sock, buffer, sizeof(buffer));
-			if (bitsread != 0) {
-				printf("Error, data received from server: %s\n", buffer);
-			}
-			else if (bitsread == 0) {
-				exit(0);
-			}
-
+			printf("%s\n", buffer);
+			exit(0);
 		}
 		else if (strcmp(command, "CREATE") == 0 || strcmp(command, "CREAT") == 0) {
 			printf("Okay, what should the message box name be?\ncreate:> ");
 			fscanf(stdin, " %s", buffer);
 			//Keep asking for input until it is well formed
-			if(strlen(buffer) < 5 || strlen(buffer) > 25 || !isalpha(buffer[0])) {
+			if (strlen(buffer) < 5 || strlen(buffer) > 25 || !isalpha(buffer[0])) {
 				printf("Error: Message box name must be within 5 and 25 characters long and start with an alphabetic character!\n");
 				// fgets(buffer, 26, stdin);
-                continue;
+				continue;
 			}
 
 			//Create whole command
 			char complete[32];
-            memset(complete, 0, 32);
+			memset(complete, 0, sizeof(complete));
 			strncpy(complete, "CREAT ", 6);
 			strncat(complete, buffer, 25);
 			//Send command to server
@@ -250,24 +245,24 @@ int main(int argc, char **argv)
 			//Get message
 			printf("Sounds good. What message would you like to send?\nput:>");
 			char* message = (char*)malloc(1024);
-            unsigned long currentSize = 1024; 
-            char c = EOF;
+			unsigned long currentSize = 1024;
+			char c = EOF;
 			// scanf("%s", &message); //variable length input
-            unsigned long i = 0;
-            getchar(); //clear buffer
-            while((fscanf(stdin, "%c", &c)) != '0' && c != '\n'){
-                message[i++] = c;
+			unsigned long i = 0;
+			getchar(); //clear buffer
+			while ((fscanf(stdin, "%c", &c)) != '0' && c != '\n') {
+				message[i++] = c;
 
-                if(i==currentSize){
-                    currentSize = i + currentSize;
-                    message = realloc(message, currentSize);
-                }
-            }
-            message[i] = '\0';
+				if (i == currentSize) {
+					currentSize = i + currentSize;
+					message = realloc(message, currentSize);
+				}
+			}
+			message[i] = '\0';
 			char data[7 + sizeof(message)];
 			strncpy(data, "PUTMG ", 6);
 			strncat(data, message, sizeof(message));
-            free(message);
+			free(message);
 			//Send to server
 			if (write(sock, data, sizeof(data)) < 0) {
 				printf("Error sending data to server: %s\n", strerror(errno)); //Complain if something goes wrong
@@ -290,7 +285,7 @@ int main(int argc, char **argv)
 			if (bits == -1) {
 				printf("Error receiving data from server: %s\n", strerror(errno));	//Complain if something goes wrong
 			}
-			// printf("%s\n", buffer);
+			//printf("%s\n", buffer);
 
 		}
 		else if (strncmp(command, "HELP", 4) == 0) {
