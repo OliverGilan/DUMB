@@ -27,6 +27,18 @@ void freeQueue(Queue *queue);
 int Enqueue(Queue *pQueue, NODE *item);
 NODE *Dequeue(Queue *pQueue);
 int isEmpty(Queue* pQueue);
+int countChars(char* message);
+
+int countChars(char* message){
+	if(message == NULL){
+		return 0;
+	}
+	int i = 0;
+	while(message[i] != '\0' && i < strlen(message)){
+		i++;
+	}
+	return i;
+}
 
 Queue *ConstructQueue() {
 	Queue *queue = (Queue*)malloc(sizeof(Queue));
@@ -63,7 +75,7 @@ int Enqueue(Queue *pQueue, NODE *item) {
 		pQueue->tail = item;
 	}
 	*(pQueue->size)=*(pQueue->size)+1;
-	printf("after added: %d %s\n", *(pQueue->size), pQueue->tail->message);
+	// printf("after added: %d %s\n", *(pQueue->size), pQueue->tail->message);
 	return 1;
 }
 
@@ -274,14 +286,14 @@ void* client(void* arg) {
 					response = "ER:WHAT?";
 				}
 				else {
-					printf("working still %s\n", message);
+					// printf("working still %s\n", message);
 					// listNODE* box = activeBox;
 					NODE* item = (NODE*)malloc(sizeof(NODE*));
 					item->message=(char*)malloc(sizeof(message));
 					strcpy(item->message, message);
 					item->prev = NULL;
 					int res = Enqueue(activeBox->messageBox, item);
-					printf("added: %d %d\n", res, *(activeBox->messageBox->size));
+					// printf("added: %d %d\n", res, *(activeBox->messageBox->size));
 					response = "OK!";
 				}
 			}
@@ -322,18 +334,27 @@ void* client(void* arg) {
 			else {
 				NODE* nxtMsg = Dequeue(activeBox->messageBox);
 				Queue* q = activeBox->messageBox;
-				printf("%d\n", *(q->size));
-				printf("%s  %d\n", activeBox->name, *(activeBox->messageBox->size));
-				printf("%s\n",nxtMsg->message);
-				printf("broke\n");
+				// printf("%d\n", *(q->size));
+				// printf("%s  %d\n", activeBox->name, *(activeBox->messageBox->size));
+				// printf("%s\n",nxtMsg->message);
+				// printf("broke\n");
 				if (nxtMsg == NULL) {
+					// printf("empty\n");
 					response = "ER:EMPTY";
-					printf("empty\n");
 				}
 				else {
-					printf("here?????");
-					int characters = sizeof(nxtMsg->message);
-					strcat(response, nxtMsg->message);
+					int characters = countChars(nxtMsg->message);
+					char len[sizeof(characters)];
+					sprintf(len, "%d", characters);
+					char complete[4+sizeof(characters)+sizeof(nxtMsg->message)];
+					memset(complete, 0, sizeof(complete));
+					strcpy(complete, "OK!");
+					strcat(complete, len);
+					strcat(complete, "!");
+					strcat(complete, nxtMsg->message);
+					
+					send(socket, complete, strlen(complete), 0);
+					continue;
 				}
 			}
 			send(socket, response, strlen(response), 0);
