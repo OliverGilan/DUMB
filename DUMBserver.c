@@ -183,6 +183,8 @@ void error(char *msg)
 void* client(void* arg) {
 	int socket = *(int*)arg;
 
+	//Active box user is in
+	listNODE* activeBox = NULL;
 	// port number, date, ip address
 
 	printf("%i connected\n", portno);
@@ -238,6 +240,10 @@ void* client(void* arg) {
 			}
 			
 			send(socket, response, strlen(response), 0);
+		}else if(strstr(buffer, "PUTMG") != NULL){
+			char* message = strchr(buffer, "!");
+			char* command = strtok(buffer, "!");
+			char* bytes = strtok(NULL, "!");
 		}
 		else {
 			char* response = "ER:WHAT?";

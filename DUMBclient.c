@@ -246,7 +246,8 @@ int main(int argc, char **argv)
 			unsigned long bytes;
 			fscanf(stdin, "%lu", &bytes);
 			if (bytes == 0) { printf("No message will be created\n"); continue; }
-
+			char length[8];
+			sprintf(length, "%lu", bytes);
 			//Get message
 			printf("Sounds good. What message would you like to send?\nput:>");
 			char* message = (char*)malloc(1024);
@@ -264,9 +265,11 @@ int main(int argc, char **argv)
 				}
 			}
 			message[i] = '\0';
-			char data[7 + currentSize];
+			char data[7 + currentSize + sizeof(bytes) + 2];
 			memset(data, 0, sizeof(data));
-			strncpy(data, "PUTMG ", 6);
+			strncpy(data, "PUTMG!", 6);
+			strcat(data, length);
+			strcat(data, "!");
 			strcat(data, message);
 			printf("DATA: %s\n", data);
 			//Send to server
