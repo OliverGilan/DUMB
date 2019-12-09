@@ -67,10 +67,9 @@ int Enqueue(Queue *pQueue, NODE *item) {
 }
 
 NODE * Dequeue(Queue *pQueue) {
-	NODE *item;
 	if (isEmpty(pQueue))
 		return NULL;
-	item = pQueue->head;
+	NODE* item = pQueue->head;
 	pQueue->head = (pQueue->head)->prev;
 	pQueue->size--;
 	return item;
@@ -92,7 +91,7 @@ int isEmpty(Queue* pQueue) {
 
 typedef struct node {
 	char* name;
-	Queue messageBox;
+	Queue* messageBox;
 	struct node * next;
 } listNODE;
 
@@ -100,7 +99,7 @@ typedef struct list {
 	listNODE * head;
 } List;
 
-listNODE * createnode(char* name, Queue msgBox) {
+listNODE * createnode(char* name, Queue* msgBox) {
 	listNODE * newNode = malloc(sizeof(listNODE));
 	newNode->name = malloc(sizeof(name));
 	strcpy(newNode->name, name);
@@ -118,7 +117,7 @@ List * makelist() {
 	return list;
 }
 
-void add(char* name, Queue msgBox, List * list) {
+void add(char* name, Queue* msgBox, List * list) {
 	listNODE * current = NULL;
 	if (list->head == NULL) {
 		list->head = createnode(name, msgBox);
@@ -229,7 +228,7 @@ void* client(void* arg) {
 				response = "ER:EXIST";
 			}
 			else {
-				add(name, *msgBox, list);
+				add(name, msgBox, list);
 				activeBox = list->head;
 			}
 			send(socket, response, strlen(response), 0);
@@ -274,8 +273,12 @@ void* client(void* arg) {
 					response = "ER:WHAT?";
 				}
 				else {
+					// printf("working still %s\n", message);
 					listNODE* box = activeBox;
-					int res = Enqueue(&(box->messageBox), message);
+					NODE* item = (NODE*)malloc(sizeof(NODE*));
+					item->message = message;
+					item->prev = NULL;
+					int res = Enqueue(box->messageBox, item);
 					response = "OK!";
 				}
 			}
@@ -315,11 +318,19 @@ void* client(void* arg) {
 				response = "ER:NOOPN";
 			}
 			else {
-				NODE* nxtMsg = Dequeue(&(activeBox->messageBox));
+				printf("here\n");
+				NODE* nxtMsg = Dequeue(activeBox->messageBox);
+				// Queue q = activeBox->messageBox;
+				// printf("%s\n", q.size);
+				printf("%s  %d\n", activeBox->name, activeBox->messageBox->size);
+				printf("%s\n",nxtMsg->message);
+				printf("broke\n");
 				if (nxtMsg == NULL) {
 					response = "ER:EMPTY";
+					printf("empty\n");
 				}
 				else {
+					printf("here?????");
 					int characters = sizeof(nxtMsg->message);
 					strcat(response, nxtMsg->message);
 				}
