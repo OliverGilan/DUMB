@@ -206,7 +206,7 @@ int main(int argc, char **argv)
 			//Create whole command
 			char complete[32];
 			memset(complete, 0, 32);
-			strncpy(complete, "DELBX ", 6);
+			strncpy(complete, "OPNBX ", 6);
 			strncat(complete, buffer, 25);
 
 			//Send command to server
@@ -215,7 +215,17 @@ int main(int argc, char **argv)
 				continue;
 			}
 			//Expect response
-
+			memset(buffer, 0, sizeof(buffer));
+			int bitsread = read(sock, buffer, sizeof(buffer));
+			if (bitsread != 0) {
+				// if(strncmp(buffer, "OK!", 3) == 0){
+				printf("%s\n", buffer);
+				// }
+			}
+			else if (bitsread == 0) {
+				printf("Error receiving data from server!\n");
+				exit(0);
+			}
 
 		}
 		else if (strncmp(command, "CLOSE", 5) == 0 || strncmp(command, "CLSBX", 5) == 0) {
@@ -231,7 +241,7 @@ int main(int argc, char **argv)
 			//Create whole command
 			char complete[32];
 			memset(complete, 0, 32);
-			strncpy(complete, "DELBX ", 6);
+			strncpy(complete, "CLSBX ", 6);
 			strncat(complete, buffer, 25);
 
 			//Send command to server
@@ -240,6 +250,17 @@ int main(int argc, char **argv)
 				continue;
 			}
 			//Expect response
+			memset(buffer, 0, sizeof(buffer));
+			int bitsread = read(sock, buffer, sizeof(buffer));
+			if (bitsread != 0) {
+				// if(strncmp(buffer, "OK!", 3) == 0){
+				printf("%s\n", buffer);
+				// }
+			}
+			else if (bitsread == 0) {
+				printf("Error receiving data from server!\n");
+				exit(0);
+			}
 
 
 		}
@@ -295,7 +316,7 @@ int main(int argc, char **argv)
 			strcat(data, length);
 			strcat(data, "!");
 			strcat(data, message);
-			printf("DATA: %s\n", data);
+			// printf("DATA: %s\n", data);
 			//Send to server
 			if (write(sock, data, sizeof(data)) < 0) {
 				printf("Error sending data to server: %s\n", strerror(errno)); //Complain if something goes wrong

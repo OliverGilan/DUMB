@@ -305,12 +305,13 @@ void* client(void* arg) {
 				response = "ER:NOOPN";
 			}
 			else {
-				NODE nxtMsg = Dequeue(&(activeBox->messageBox));
+				NODE* nxtMsg = Dequeue(&(activeBox->messageBox));
 				if (nxtMsg == NULL) {
 					response = "ER:EMPTY";
 				}
 				else {
-					strcat(response, nxtMsg.message);
+					int characters = sizeof(nxtMsg->message);
+					strcat(response, nxtMsg->message);
 				}
 			}
 			send(socket, response, strlen(response), 0);
