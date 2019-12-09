@@ -244,6 +244,8 @@ void* client(void* arg) {
 			char* message = strchr(buffer, "!");
 			char* command = strtok(buffer, "!");
 			char* bytes = strtok(NULL, "!");
+
+			
 		}
 		else {
 			char* response = "ER:WHAT?";

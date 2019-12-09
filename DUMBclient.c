@@ -183,7 +183,7 @@ int main(int argc, char **argv)
 		}
 		else if (strncmp(command, "OPEN", 4) == 0 || strncmp(command, "OPNBX", 5) == 0) {
 			printf("Okay, open which message box?\nopen:> ");
-			fgets(buffer, 26, stdin);
+			fscanf(stdin, " %s", buffer);
 
 			//Check if message box name is well formed
 			if (strlen(buffer) < 5 || strlen(buffer) > 25 || !isalpha(buffer[0])) {
@@ -193,7 +193,8 @@ int main(int argc, char **argv)
 
 			//Create whole command
 			char complete[32];
-			strncpy(complete, "DELBX ", 6);
+			memset(complete, 0, 32);
+			strncpy(complete, "OPNBX ", 6);
 			strncat(complete, buffer, 25);
 
 			//Send command to server
@@ -217,7 +218,7 @@ int main(int argc, char **argv)
 
 			//Create whole command
 			char complete[32];
-			strncpy(complete, "DELBX ", 6);
+			strncpy(complete, "CLSBX ", 6);
 			strncat(complete, buffer, 25);
 
 			//Send command to server
