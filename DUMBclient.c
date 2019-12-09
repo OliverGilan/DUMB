@@ -110,6 +110,7 @@ int main(int argc, char **argv)
 			command[j] = (toupper(ch));
 			j++;
 		}
+		// printf("command: %s\n", command);
 		// command[5] = '\0';
 		//Handle each command differently
 		if (strcmp(command, "QUIT") == 0 || strcmp(command, "GDBYE") == 0) {
@@ -266,7 +267,7 @@ int main(int argc, char **argv)
 		}
 		else if (strncmp(command, "NEXT", 4) == 0 || strncmp(command, "NXTMG", 5) == 0) {
 			//Send command to server
-			if (write(sock, "NEXTMG", 5) < 0) {
+			if (write(sock, "NXTMG", 5) < 0) {
 				printf("Error sending data to server: %s\n", strerror(errno)); //Complain if something goes wrong
 				continue;
 			}
@@ -316,13 +317,14 @@ int main(int argc, char **argv)
 			strcat(data, length);
 			strcat(data, "!");
 			strcat(data, message);
-			// printf("DATA: %s\n", data);
+			// printf("DATA: %s|\n", data);
+			free(message);
 			//Send to server
-			if (write(sock, data, sizeof(data)) < 0) {
+			if (write(sock, data, strlen(data)) < 0) {
 				printf("Error sending data to server: %s\n", strerror(errno)); //Complain if something goes wrong
 				continue;
 			}
-
+			memset(data, 0, sizeof(data));
 			//Expect response
 			memset(buffer, 0, sizeof(buffer));
 			int bitsread = read(sock, buffer, sizeof(buffer));

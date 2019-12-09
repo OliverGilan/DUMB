@@ -199,9 +199,10 @@ void* client(void* arg) {
 	//Wait for data to come in from client
 	char buffer[1024];
 	while (1) {
-		for (int i = 0; i < 1024; i++) {
-			buffer[i] = '\0';
-		}
+		// for (int i = 0; i < 1024; i++) {
+		// 	buffer[i] = '\0';
+		// }
+		memset(buffer, 0, sizeof(buffer));
 		int bits = read(socket, buffer, sizeof(buffer));	//Read data from socket
 		if (bits == -1) {
 			printf("Error receiving data from client: %s\n", strerror(errno));	//Complain if something goes wrong
@@ -256,10 +257,19 @@ void* client(void* arg) {
 				response = "ER:NOOPN";
 			}
 			else {
-				char* message = strstr(buffer, "!");
+				char* message = NULL;
+				int count = 0;
+				int i = 0;
+				while(count < 2 && i < strlen(buffer)){
+					if(buffer[i] == '!'){
+						count++;
+					}
+					i++;
+				}
+				message = &buffer[i];
+				// printf("test: %s\n", message);
 				char* command = strtok(buffer, "!");
 				char* bytes = strtok(NULL, "!");
-
 				if (message == NULL || message[0] == '\0') {
 					response = "ER:WHAT?";
 				}
