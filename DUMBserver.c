@@ -229,6 +229,7 @@ void* client(void* arg) {
 			}
 			else {
 				add(name, *msgBox, list);
+				activeBox = list->head;
 			}
 			send(socket, response, strlen(response), 0);
 		}
@@ -255,7 +256,7 @@ void* client(void* arg) {
 				response = "ER:NOOPN";
 			}
 			else {
-				char* message = strchr(buffer, "!");
+				char* message = strstr(buffer, "!");
 				char* command = strtok(buffer, "!");
 				char* bytes = strtok(NULL, "!");
 
@@ -271,31 +272,47 @@ void* client(void* arg) {
 
 			send(socket, response, strlen(response), 0);
 		}
-		else if (strstr(buffer, "OPNBX") != NULL){
+		else if (strstr(buffer, "OPNBX") != NULL) {
 			char* name = strstr(buffer, " ");
 			char* response = "OK!";
 
-			if(alreadyExists(name, list)){
+			if (alreadyExists(name, list)) {
 				response = "ER: NEXST";
 			}
 			//else if(){} IF OPENED
-			else{
-				activeBox = getBox(name, list);	
+			else {
+				activeBox = getBox(name, list);
 			}
 
 			send(socket, response, strlen(response), 0);
 		}
-		else if (strstr(buffer, "CLSBX") != NULL){
+		else if (strstr(buffer, "CLSBX") != NULL) {
 			char* name = strstr(buffer, " ");
 			char* response = "OK!";
 
-			if(activeBox->name != name){
+			if (activeBox->name != name) {
 				response = "ER: NOOPN";
 			}
-			else{
-				activeBox = NULL;	
+			else {
+				activeBox = NULL;
 			}
 
+			send(socket, response, strlen(response), 0);
+		}
+		else if (strstr(buffer, "NXTMG") != NULL) {
+			char* response = "OK";
+			if (activeBox == NULL) {
+				response = "ER:NOOPN";
+			}
+			else {
+				NODE nxtMsg = Dequeue(&(activeBox->messageBox));
+				if (nxtMsg == NULL) {
+					response = "ER:EMPTY";
+				}
+				else {
+					strcat(response, nxtMsg.message);
+				}
+			}
 			send(socket, response, strlen(response), 0);
 		}
 		else {

@@ -251,7 +251,17 @@ int main(int argc, char **argv)
 			}
 
 			//Expect response
-
+			memset(buffer, 0, sizeof(buffer));
+			int bitsread = read(sock, buffer, sizeof(buffer));
+			if (bitsread != 0) {
+				// if(strncmp(buffer, "OK!", 3) == 0){
+				printf("%s\n", buffer);
+				// }
+			}
+			else if (bitsread == 0) {
+				printf("Error receiving data from server!\n");
+				exit(0);
+			}
 
 		}
 		else if (strncmp(command, "PUT", 3) == 0 || strncmp(command, "PUTMG", 5) == 0) {
@@ -293,7 +303,17 @@ int main(int argc, char **argv)
 			}
 
 			//Expect response
-
+			memset(buffer, 0, sizeof(buffer));
+			int bitsread = read(sock, buffer, sizeof(buffer));
+			if (bitsread != 0) {
+				// if(strncmp(buffer, "OK!", 3) == 0){
+				printf("%s\n", buffer);
+				// }
+			}
+			else if (bitsread == 0) {
+				printf("Error receiving data from server!\n");
+				exit(0);
+			}
 
 
 		}
