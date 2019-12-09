@@ -271,6 +271,33 @@ void* client(void* arg) {
 
 			send(socket, response, strlen(response), 0);
 		}
+		else if (strstr(buffer, "OPNBX") != NULL){
+			char* name = strstr(buffer, " ");
+			char* response = "OK!";
+
+			if(alreadyExists(name, list)){
+				response = "ER: NEXST";
+			}
+			//else if(){} IF OPENED
+			else{
+				activeBox = getBox(name, list);	
+			}
+
+			send(socket, response, strlen(response), 0);
+		}
+		else if (strstr(buffer, "CLSBX") != NULL){
+			char* name = strstr(buffer, " ");
+			char* response = "OK!";
+
+			if(activeBox->name != name){
+				response = "ER: NOOPN";
+			}
+			else{
+				activeBox = NULL;	
+			}
+
+			send(socket, response, strlen(response), 0);
+		}
 		else {
 			char* response = "ER:WHAT?";
 			send(socket, response, strlen(response), 0);
