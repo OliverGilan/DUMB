@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <errno.h>
 #include <arpa/inet.h>
 #include <pthread.h>
@@ -173,6 +174,8 @@ listNODE* getBox(char* name, List* list) {
 
 int portno;
 List* list;
+char* ipAddr;
+const char * months[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
 
 void error(char *msg)
 {
@@ -185,9 +188,13 @@ void* client(void* arg) {
 
 	//Active box user is in
 	listNODE* activeBox = NULL;
+	char* ipAddress = malloc(sizeof(ipAddr));
+	strcpy(ipAddress, ipAddr);
+	time_t t = time(NULL);
+	struct tm tm = *localtime(&t);
 	// port number, date, ip address
 
-	printf("%i connected\n", portno);
+	printf("%i %d %s %s connected\n", portno, tm.tm_mday, months[tm.tm_mon], ipAddress);
 
 	//Wait for data to come in from client
 	char buffer[1024];
@@ -202,7 +209,7 @@ void* client(void* arg) {
 		if (bits == 0) { break; } //Needs a break clause. Temp for now.
 
 		//Do something with data
-		printf("%i %s\n", portno, buffer);
+		printf("%i %d %s %s %s\n", portno, tm.tm_mday, months[tm.tm_mon], ipAddress, buffer);
 
 		if (strncmp(buffer, "HELLO", 5) == 0) {
 			char* response = "HELLO DUMBv0 ready!";
@@ -244,16 +251,18 @@ void* client(void* arg) {
 		}
 		else if (strstr(buffer, "PUTMG") != NULL) {
 			char* response;
-			if(activeBox == NULL){
+			if (activeBox == NULL) {
 				response = "ER:NOOPN";
-			}else{
+			}
+			else {
 				char* message = strchr(buffer, "!");
 				char* command = strtok(buffer, "!");
 				char* bytes = strtok(NULL, "!");
 
-				if(message == NULL || message[0] == '\0'){
+				if (message == NULL || message[0] == '\0') {
 					response = "ER:WHAT?";
-				}else{
+				}
+				else {
 					listNODE* box = activeBox;
 					int res = Enqueue(&(box->messageBox), message);
 					response = "OK!";
@@ -271,7 +280,7 @@ void* client(void* arg) {
 		memset(buffer, 0, sizeof(buffer));
 	}
 
-	printf("%i disconnected\n", portno, socket);
+	printf("%i %d %s %s disconnected\n", portno, tm.tm_mday, months[tm.tm_mon], ipAddress);
 
 	return NULL;
 }
@@ -281,6 +290,7 @@ int main(int argc, char *argv[])
 	// file descriptor for our server socket:
 	// file descriptor for a client socket:
 	// server port to connect to:
+	ipAddr = malloc(12);
 	list = makelist();
 	int sockfd, newsockfd, clilen;
 
@@ -340,12 +350,14 @@ int main(int argc, char *argv[])
 	pthread_t thread;
 	while ((newsockfd = accept(sockfd, (struct sockaddr *)&cli_addr, (socklen_t*)&clilen)))	// block until a client connects, when it does, create a client socket
 	{
-		cli_addr.sin_addr.s_addr;
+		strcpy(ipAddr, inet_ntoa(cli_addr.sin_addr));
 		char* s = malloc(INET_ADDRSTRLEN);
 		inet_ntop(AF_INET, &(cli_addr.sin_addr), s, INET_ADDRSTRLEN);
 		pthread_create(&thread, NULL, client, (void*)&newsockfd);
 		pthread_detach(thread);
+
 	}
+	free(ipAddr);
 
 	/** If we're here, a client tried to connect **/
 
