@@ -276,7 +276,7 @@ void* client(void* arg) {
 			char* name = strstr(buffer, " ");
 			char* response = "OK!";
 
-			if (alreadyExists(name, list)) {
+			if (!alreadyExists(name, list)) {
 				response = "ER: NEXST";
 			}
 			//else if(){} IF OPENED
