@@ -149,7 +149,7 @@ int main(int argc, char **argv)
 			int bitsread = read(sock, buffer, sizeof(buffer));
 			if (bitsread != 0) {
 				// if(strncmp(buffer, "OK!", 3) == 0){
-					printf("%s\n", buffer);
+				printf("%s\n", buffer);
 				// }
 			}
 			else if (bitsread == 0) {
@@ -159,7 +159,8 @@ int main(int argc, char **argv)
 		}
 		else if (strncmp(command, "DELETE", 6) == 0 || strncmp(command, "DELBX", 5) == 0) {
 			printf("Okay, what's the name of the box you wish to delete?\ndelete:> ");
-			fgets(buffer, 26, stdin);
+			memset(buffer, 0, sizeof(buffer));
+			fscanf(stdin, " %s", buffer);
 
 			//Check if message box name is well formed
 			if (strlen(buffer) < 5 || strlen(buffer) > 25 || !isalpha(buffer[0])) {
@@ -169,6 +170,7 @@ int main(int argc, char **argv)
 
 			//Create whole command
 			char complete[32];
+			memset(complete, 0, sizeof(complete));
 			strncpy(complete, "DELBX ", 6);
 			strncat(complete, buffer, 25);
 
@@ -178,7 +180,17 @@ int main(int argc, char **argv)
 				continue;
 			}
 			//Expect response
-
+			memset(buffer, 0, sizeof(buffer));
+			int bitsread = read(sock, buffer, sizeof(buffer));
+			if (bitsread != 0) {
+				// if(strncmp(buffer, "OK!", 3) == 0){
+				printf("%s\n", buffer);
+				// }
+			}
+			else if (bitsread == 0) {
+				printf("Error receiving data from server!\n");
+				exit(0);
+			}
 
 		}
 		else if (strncmp(command, "OPEN", 4) == 0 || strncmp(command, "OPNBX", 5) == 0) {

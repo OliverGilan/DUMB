@@ -135,7 +135,7 @@ void delete(char* name, List * list) {
 	listNODE * current = list->head;
 	listNODE * previous = current;
 	while (current != NULL) {
-		if (strcmp(current->name, name)) {
+		if (strcmp(current->name, name) == 0) {
 			previous->next = current->next;
 			if (current == list->head)
 				list->head = current->next;
@@ -158,7 +158,7 @@ int alreadyExists(char* name, List * list) {
 	return 0;
 }
 
-listNODE* getBox(char* name, List* list){
+listNODE* getBox(char* name, List* list) {
 	listNODE * current = list->head;
 	while (current != NULL) {
 		if (strcmp(current->name, name) == 0) {
@@ -225,22 +225,24 @@ void* client(void* arg) {
 			}
 			send(socket, response, strlen(response), 0);
 		}
-		else if(strstr(buffer, "DELBX") != NULL){
+		else if (strstr(buffer, "DELBX") != NULL) {
 			char* response = "OK!";
 			char* name = strstr(buffer, " ");
-			if(alreadyExists(name, list)){
+			if (alreadyExists(name, list) == 1) {
 				listNODE* box = getBox(name, list);
-				if(!isEmpty(&(box->messageBox))){
+				if (!isEmpty(&(box->messageBox))) {
 					response = "ER: NOTMT";
 				}
 				// else if(){} IF OPEN
 				delete(name, list);
-			}else if(alreadyExists(name,list)){
+			}
+			else if (alreadyExists(name, list) == 0) {
 				response = "ER:NEXST";
 			}
-			
+
 			send(socket, response, strlen(response), 0);
-		}else if(strstr(buffer, "PUTMG") != NULL){
+		}
+		else if (strstr(buffer, "PUTMG") != NULL) {
 			char* message = strchr(buffer, "!");
 			char* command = strtok(buffer, "!");
 			char* bytes = strtok(NULL, "!");
