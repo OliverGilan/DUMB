@@ -106,6 +106,7 @@ typedef struct node {
 	char* name;
 	Queue* messageBox;
 	struct node * next;
+	int* isOpen;
 } listNODE;
 
 typedef struct list {
@@ -116,6 +117,7 @@ listNODE * createnode(char* name, Queue* msgBox) {
 	listNODE * newNode = malloc(sizeof(listNODE));
 	newNode->name = malloc(sizeof(name));
 	strcpy(newNode->name, name);
+	newNode->isOpen = (int*)calloc(1, sizeof(int));
 	newNode->messageBox = msgBox;
 	newNode->next = NULL;
 	return newNode;
@@ -242,7 +244,7 @@ void* client(void* arg) {
 			}
 			else {
 				add(name, msgBox, list);
-				activeBox = list->head;
+				// activeBox = list->head;
 			}
 			send(socket, response, strlen(response), 0);
 		}
@@ -303,12 +305,18 @@ void* client(void* arg) {
 			char* name = strstr(buffer, " ");
 			char* response = "OK!";
 
-			if (!alreadyExists(name, list)) {
-				response = "ER: NEXST";
+			if(activeBox != NULL){
+				response = "ER:INBOX";
 			}
-			//else if(){} IF OPENED
+			else if (!alreadyExists(name, list)) {
+				response = "ER:NEXST";
+			}
+			else if(*(getBox(name, list)->isOpen) == 1){
+				response = "ER:OPEND";
+			}
 			else {
 				activeBox = getBox(name, list);
+				*(activeBox->isOpen) = 1;
 			}
 
 			send(socket, response, strlen(response), 0);
@@ -316,11 +324,11 @@ void* client(void* arg) {
 		else if (strstr(buffer, "CLSBX") != NULL) {
 			char* name = strstr(buffer, " ");
 			char* response = "OK!";
-
-			if (activeBox->name != name) {
-				response = "ER: NOOPN";
+			if (strcmp(activeBox->name, name)) {
+				response = "ER:NOOPN";
 			}
 			else {
+				*(activeBox->isOpen) = 0;
 				activeBox = NULL;
 			}
 
@@ -339,7 +347,6 @@ void* client(void* arg) {
 				// printf("%s\n",nxtMsg->message);
 				// printf("broke\n");
 				if (nxtMsg == NULL) {
-					// printf("empty\n");
 					response = "ER:EMPTY";
 				}
 				else {
