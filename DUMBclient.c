@@ -220,7 +220,7 @@ int main(int argc, char **argv)
 		}
 		else if (strncmp(command, "CLOSE", 5) == 0 || strncmp(command, "CLSBX", 5) == 0) {
 			printf("Okay, just confirm the name of the box you have open right now...\nclose:> ");
-			fgets(buffer, 26, stdin);
+			fscanf(stdin, " %s", buffer);
 
 			//Check if message box name is well formed
 			if (strlen(buffer) < 5 || strlen(buffer) > 25 || !isalpha(buffer[0])) {
@@ -230,6 +230,7 @@ int main(int argc, char **argv)
 
 			//Create whole command
 			char complete[32];
+			memset(complete, 0, 32);
 			strncpy(complete, "CLSBX ", 6);
 			strncat(complete, buffer, 25);
 

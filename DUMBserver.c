@@ -243,11 +243,24 @@ void* client(void* arg) {
 			send(socket, response, strlen(response), 0);
 		}
 		else if (strstr(buffer, "PUTMG") != NULL) {
-			char* message = strchr(buffer, "!");
-			char* command = strtok(buffer, "!");
-			char* bytes = strtok(NULL, "!");
+			char* response;
+			if(activeBox == NULL){
+				response = "ER:NOOPN";
+			}else{
+				char* message = strchr(buffer, "!");
+				char* command = strtok(buffer, "!");
+				char* bytes = strtok(NULL, "!");
 
-			
+				if(message == NULL || message[0] == '\0'){
+					response = "ER:WHAT?";
+				}else{
+					listNODE* box = activeBox;
+					int res = Enqueue(&(box->messageBox), message);
+					response = "OK!";
+				}
+			}
+
+			send(socket, response, strlen(response), 0);
 		}
 		else {
 			char* response = "ER:WHAT?";
