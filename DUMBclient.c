@@ -264,10 +264,11 @@ int main(int argc, char **argv)
 				}
 			}
 			message[i] = '\0';
-			char data[7 + sizeof(message)];
+			char data[7 + currentSize];
+			memset(data, 0, sizeof(data));
 			strncpy(data, "PUTMG ", 6);
-			strncat(data, message, sizeof(message));
-			free(message);
+			strcat(data, message);
+			printf("DATA: %s\n", data);
 			//Send to server
 			if (write(sock, data, sizeof(data)) < 0) {
 				printf("Error sending data to server: %s\n", strerror(errno)); //Complain if something goes wrong
