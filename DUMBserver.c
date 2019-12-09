@@ -19,7 +19,7 @@ typedef struct Node_t { // message in queue
 typedef struct Queue { // head of queue
 	NODE *head;
 	NODE *tail;
-	int size;  // num. messages in box
+	int* size;  // num. messages in box
 } Queue;
 
 Queue *ConstructQueue();
@@ -33,7 +33,7 @@ Queue *ConstructQueue() {
 	if (queue == NULL) {
 		return NULL;
 	}
-	queue->size = 0;
+	queue->size = (int*)calloc(1, sizeof(int));
 	queue->head = NULL;
 	queue->tail = NULL;
 
@@ -54,7 +54,7 @@ int Enqueue(Queue *pQueue, NODE *item) {
 		return 0;
 
 	item->prev = NULL;
-	if (pQueue->size == 0) {
+	if (*(pQueue->size) == 0) {
 		pQueue->head = item;
 		pQueue->tail = item;
 	}
@@ -62,7 +62,8 @@ int Enqueue(Queue *pQueue, NODE *item) {
 		pQueue->tail->prev = item;
 		pQueue->tail = item;
 	}
-	pQueue->size++;
+	*(pQueue->size)=*(pQueue->size)+1;
+	printf("after added: %d %s\n", *(pQueue->size), pQueue->tail->message);
 	return 1;
 }
 
@@ -71,7 +72,7 @@ NODE * Dequeue(Queue *pQueue) {
 		return NULL;
 	NODE* item = pQueue->head;
 	pQueue->head = (pQueue->head)->prev;
-	pQueue->size--;
+	*(pQueue->size)=*(pQueue->size)-1;
 	return item;
 }
 
@@ -79,7 +80,7 @@ int isEmpty(Queue* pQueue) {
 	if (pQueue == NULL) {
 		return 0;
 	}
-	if (pQueue->size == 0) {
+	if (*(pQueue->size) == 0) {
 		return 1;
 	}
 	else {
@@ -238,7 +239,7 @@ void* client(void* arg) {
 			char* name = strstr(buffer, " ");
 			if (alreadyExists(name, list) == 1) {
 				listNODE* box = getBox(name, list);
-				if (!isEmpty(&(box->messageBox))) {
+				if (!isEmpty(box->messageBox)) {
 					response = "ER: NOTMT";
 				}
 				// else if(){} IF OPEN
@@ -273,16 +274,17 @@ void* client(void* arg) {
 					response = "ER:WHAT?";
 				}
 				else {
-					// printf("working still %s\n", message);
-					listNODE* box = activeBox;
+					printf("working still %s\n", message);
+					// listNODE* box = activeBox;
 					NODE* item = (NODE*)malloc(sizeof(NODE*));
-					item->message = message;
+					item->message=(char*)malloc(sizeof(message));
+					strcpy(item->message, message);
 					item->prev = NULL;
-					int res = Enqueue(box->messageBox, item);
+					int res = Enqueue(activeBox->messageBox, item);
+					printf("added: %d %d\n", res, *(activeBox->messageBox->size));
 					response = "OK!";
 				}
 			}
-
 			send(socket, response, strlen(response), 0);
 		}
 		else if (strstr(buffer, "OPNBX") != NULL) {
@@ -318,11 +320,10 @@ void* client(void* arg) {
 				response = "ER:NOOPN";
 			}
 			else {
-				printf("here\n");
 				NODE* nxtMsg = Dequeue(activeBox->messageBox);
-				// Queue q = activeBox->messageBox;
-				// printf("%s\n", q.size);
-				printf("%s  %d\n", activeBox->name, activeBox->messageBox->size);
+				Queue* q = activeBox->messageBox;
+				printf("%d\n", *(q->size));
+				printf("%s  %d\n", activeBox->name, *(activeBox->messageBox->size));
 				printf("%s\n",nxtMsg->message);
 				printf("broke\n");
 				if (nxtMsg == NULL) {
