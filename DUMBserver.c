@@ -288,6 +288,7 @@ void* client(void* arg) {
 				// printf("test: %s\n", message);
 				char* command = strtok(buffer, "!");
 				char* bytes = strtok(NULL, "!");
+				printf("size of message: %i", sizeof(message));
 				if (message == NULL || message[0] == '\0') {
 					response = "ER:WHAT?";
 				}
@@ -328,7 +329,10 @@ void* client(void* arg) {
 		else if (strstr(buffer, "CLSBX") != NULL) {
 			char* name = strstr(buffer, " ");
 			char* response = "OK!";
-			if (strcmp(activeBox->name, name)) {
+			if (activeBox == NULL) {
+				response = "ER:NOOPN";
+			}
+			else if (strcmp(activeBox->name, name)) {
 				response = "ER:NOOPN";
 			}
 			else {

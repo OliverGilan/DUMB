@@ -302,6 +302,7 @@ int main(int argc, char **argv)
 			// scanf("%s", &message); //variable length input
 			unsigned long i = 0;
 			getchar(); //clear buffer
+			int tooLong = 0;
 			while ((fscanf(stdin, "%c", &c)) != '0' && c != '\n') {
 				message[i++] = c;
 
@@ -309,7 +310,17 @@ int main(int argc, char **argv)
 					currentSize = i + currentSize;
 					message = realloc(message, currentSize);
 				}
+				if (sizeof(char)*i > bytes) {
+					printf("Message is longer than specified bytes.\n");
+					tooLong = 1;
+					break;
+				}
 			}
+			if (tooLong) {
+				fscanf(stdin, "%s", message);
+				continue;
+			}
+			printf("size of message: %i", sizeof(message));
 			message[i] = '\0';
 			char data[7 + currentSize + sizeof(bytes) + 2];
 			memset(data, 0, sizeof(data));
