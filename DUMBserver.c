@@ -29,12 +29,12 @@ NODE *Dequeue(Queue *pQueue);
 int isEmpty(Queue* pQueue);
 int countChars(char* message);
 
-int countChars(char* message){
-	if(message == NULL){
+int countChars(char* message) {
+	if (message == NULL) {
 		return 0;
 	}
 	int i = 0;
-	while(message[i] != '\0' && i < strlen(message)){
+	while (message[i] != '\0' && i < strlen(message)) {
 		i++;
 	}
 	return i;
@@ -74,7 +74,7 @@ int Enqueue(Queue *pQueue, NODE *item) {
 		pQueue->tail->prev = item;
 		pQueue->tail = item;
 	}
-	*(pQueue->size)=*(pQueue->size)+1;
+	*(pQueue->size) = *(pQueue->size) + 1;
 	// printf("after added: %d %s\n", *(pQueue->size), pQueue->tail->message);
 	return 1;
 }
@@ -84,7 +84,7 @@ NODE * Dequeue(Queue *pQueue) {
 		return NULL;
 	NODE* item = pQueue->head;
 	pQueue->head = (pQueue->head)->prev;
-	*(pQueue->size)=*(pQueue->size)-1;
+	*(pQueue->size) = *(pQueue->size) - 1;
 	return item;
 }
 
@@ -232,6 +232,10 @@ void* client(void* arg) {
 		}
 		else if (strncmp(buffer, "GDBYE", 5) == 0) {
 			char* response = "GDBYE DUMBv0";
+			if (activeBox != NULL) {
+				*(activeBox->isOpen) = 0;
+				activeBox = NULL;
+			}
 			send(socket, response, strlen(response), 0);
 			break;
 		}
@@ -274,8 +278,8 @@ void* client(void* arg) {
 				char* message = NULL;
 				int count = 0;
 				int i = 0;
-				while(count < 2 && i < strlen(buffer)){
-					if(buffer[i] == '!'){
+				while (count < 2 && i < strlen(buffer)) {
+					if (buffer[i] == '!') {
 						count++;
 					}
 					i++;
@@ -291,7 +295,7 @@ void* client(void* arg) {
 					// printf("working still %s\n", message);
 					// listNODE* box = activeBox;
 					NODE* item = (NODE*)malloc(sizeof(NODE*));
-					item->message=(char*)malloc(sizeof(message));
+					item->message = (char*)malloc(sizeof(message));
 					strcpy(item->message, message);
 					item->prev = NULL;
 					int res = Enqueue(activeBox->messageBox, item);
@@ -305,13 +309,13 @@ void* client(void* arg) {
 			char* name = strstr(buffer, " ");
 			char* response = "OK!";
 
-			if(activeBox != NULL){
+			if (activeBox != NULL) {
 				response = "ER:INBOX";
 			}
 			else if (!alreadyExists(name, list)) {
 				response = "ER:NEXST";
 			}
-			else if(*(getBox(name, list)->isOpen) == 1){
+			else if (*(getBox(name, list)->isOpen) == 1) {
 				response = "ER:OPEND";
 			}
 			else {
@@ -353,13 +357,13 @@ void* client(void* arg) {
 					int characters = countChars(nxtMsg->message);
 					char len[sizeof(characters)];
 					sprintf(len, "%d", characters);
-					char complete[4+sizeof(characters)+sizeof(nxtMsg->message)];
+					char complete[4 + sizeof(characters) + sizeof(nxtMsg->message)];
 					memset(complete, 0, sizeof(complete));
 					strcpy(complete, "OK!");
 					strcat(complete, len);
 					strcat(complete, "!");
 					strcat(complete, nxtMsg->message);
-					
+
 					send(socket, complete, strlen(complete), 0);
 					continue;
 				}
@@ -375,6 +379,10 @@ void* client(void* arg) {
 		memset(buffer, 0, sizeof(buffer));
 	}
 
+	if (activeBox != NULL) {
+		*(activeBox->isOpen) = 0;
+		activeBox = NULL;
+	}
 	printf("%i %d %s %s disconnected\n", portno, tm.tm_mday, months[tm.tm_mon], ipAddress);
 
 	return NULL;
