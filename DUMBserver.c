@@ -256,7 +256,7 @@ void* client(void* arg) {
 			char* response = "OK!";
 			char* name = strstr(buffer, " ");
 
-			if (getBox(name, list)->isOpen || (activeBox != NULL && strcmp(activeBox->name, name))) {
+			if (*(getBox(name, list)->isOpen) == 1 || (activeBox != NULL && strcmp(activeBox->name, name))) {
 				response = "ER:OPEND";
 			}
 			else if (alreadyExists(name, list) == 1) {
@@ -264,8 +264,9 @@ void* client(void* arg) {
 				if (!isEmpty(box->messageBox)) {
 					response = "ER: NOTMT";
 				}
-				// else if(){} IF OPEN
-				delete(name, list);
+				else {
+					delete(name, list);
+				}
 			}
 			else if (alreadyExists(name, list) == 0) {
 				response = "ER:NEXST";
@@ -292,7 +293,6 @@ void* client(void* arg) {
 				// printf("test: %s\n", message);
 				char* command = strtok(buffer, "!");
 				char* bytes = strtok(NULL, "!");
-				printf("size of message: %i", sizeof(message));
 				if (message == NULL || message[0] == '\0') {
 					response = "ER:WHAT?";
 				}

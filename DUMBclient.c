@@ -320,7 +320,6 @@ int main(int argc, char **argv)
 				fscanf(stdin, "%s", message);
 				continue;
 			}
-			printf("size of message: %i", sizeof(message));
 			message[i] = '\0';
 			char data[7 + currentSize + sizeof(bytes) + 2];
 			memset(data, 0, sizeof(data));
