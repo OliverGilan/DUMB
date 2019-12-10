@@ -25,7 +25,7 @@ int main(int argc, char **argv)
 		exit(1);
 	}
 	// Declare initial vars
-			// file descriptor for our socket
+	// file descriptor for our socket
 	int sock;
 	// server port to connect to
 	const char* hostname = argv[1];
@@ -39,32 +39,11 @@ int main(int argc, char **argv)
 	// Super-special secret C struct that holds info about a machine's address
 	struct addrinfo* info = addStruct(hostname, port);
 
-
-	// convert the text representation of the port number given by the user to an int
-
-	// look up the IP address that matches up with the name given - the name given might
-	//    BE an IP address, which is fine, and store it in the 'serverIPAddress' struct
-
 	// try to build a socket .. if it doesn't work, complain and exit
 	sock = socket(info->ai_family, SOCK_STREAM, 0);
 	if (sock < 0) {
 		error("socket()");
 	}
-
-
-	/** We now have the IP address and port to connect to on the server, we have to get    **/
-	/**   that information into C's special address struct for connecting sockets                     **/
-
-	// zero out the socket address info struct .. always initialize!
-
-	// set a flag to indicate the type of network address we'll be using 
-
-	// set the remote port .. translate from a 'normal' int to a super-special 'network-port-int'
-
-	// do a raw copy of the bytes that represent the server's IP address in 
-	//   the 'serverIPAddress' struct into our serverIPAddressInfo struct
-
-
 
 	/** We now have a blank socket and a fully parameterized address info struct .. time to connect **/
 
@@ -91,6 +70,7 @@ int main(int argc, char **argv)
 	if (bits == -1) {
 		printf("Error receiving data from server: %s\n", strerror(errno));	//Complain if something goes wrong
 	}
+	//Print response
 	printf("%s\n", buffer);
 
 	//Accept user input
@@ -110,8 +90,7 @@ int main(int argc, char **argv)
 			command[j] = (toupper(ch));
 			j++;
 		}
-		// printf("command: %s\n", command);
-		// command[5] = '\0';
+
 		//Handle each command differently
 		if (strcmp(command, "QUIT") == 0 || strcmp(command, "GDBYE") == 0) {
 			if (write(sock, "GDBYE", 5) < 0) { //Send to server
@@ -119,18 +98,15 @@ int main(int argc, char **argv)
 				continue;
 			}
 
-			//Check for success
-			int bitsread = read(sock, buffer, sizeof(buffer));
-			printf("%s\n", buffer);
 			exit(0);
 		}
 		else if (strcmp(command, "CREATE") == 0 || strcmp(command, "CREAT") == 0) {
 			printf("Okay, what should the message box name be?\ncreate:> ");
 			fscanf(stdin, " %s", buffer);
-			//Keep asking for input until it is well formed
+
+			//Check if input is well formed
 			if (strlen(buffer) < 5 || strlen(buffer) > 25 || !isalpha(buffer[0])) {
 				printf("Error: Message box name must be within 5 and 25 characters long and start with an alphabetic character!\n");
-				// fgets(buffer, 26, stdin);
 				continue;
 			}
 
@@ -145,13 +121,11 @@ int main(int argc, char **argv)
 				continue;
 			}
 
-			//Expect response FIX
+			//Expect response
 			memset(buffer, 0, sizeof(buffer));
 			int bitsread = read(sock, buffer, sizeof(buffer));
 			if (bitsread != 0) {
-				// if(strncmp(buffer, "OK!", 3) == 0){
 				printf("%s\n", buffer);
-				// }
 			}
 			else if (bitsread == 0) {
 				printf("Error receiving data from server!\n");
@@ -180,6 +154,7 @@ int main(int argc, char **argv)
 				printf("Error sending data to server: %s\n", strerror(errno)); //Complain if something goes wrong
 				continue;
 			}
+
 			//Expect response
 			memset(buffer, 0, sizeof(buffer));
 			int bitsread = read(sock, buffer, sizeof(buffer));
@@ -192,7 +167,6 @@ int main(int argc, char **argv)
 				printf("Error receiving data from server!\n");
 				exit(0);
 			}
-
 		}
 		else if (strncmp(command, "OPEN", 4) == 0 || strncmp(command, "OPNBX", 5) == 0) {
 			printf("Okay, open which message box?\nopen:> ");
@@ -215,13 +189,12 @@ int main(int argc, char **argv)
 				printf("Error sending data to server: %s\n", strerror(errno)); //Complain if something goes wrong
 				continue;
 			}
+
 			//Expect response
 			memset(buffer, 0, sizeof(buffer));
 			int bitsread = read(sock, buffer, sizeof(buffer));
 			if (bitsread != 0) {
-				// if(strncmp(buffer, "OK!", 3) == 0){
 				printf("%s\n", buffer);
-				// }
 			}
 			else if (bitsread == 0) {
 				printf("Error receiving data from server!\n");
@@ -250,13 +223,12 @@ int main(int argc, char **argv)
 				printf("Error sending data to server: %s\n", strerror(errno)); //Complain if something goes wrong
 				continue;
 			}
+
 			//Expect response
 			memset(buffer, 0, sizeof(buffer));
 			int bitsread = read(sock, buffer, sizeof(buffer));
 			if (bitsread != 0) {
-				// if(strncmp(buffer, "OK!", 3) == 0){
 				printf("%s\n", buffer);
-				// }
 			}
 			else if (bitsread == 0) {
 				printf("Error receiving data from server!\n");
@@ -276,9 +248,7 @@ int main(int argc, char **argv)
 			memset(buffer, 0, sizeof(buffer));
 			int bitsread = read(sock, buffer, sizeof(buffer));
 			if (bitsread != 0) {
-				// if(strncmp(buffer, "OK!", 3) == 0){
 				printf("%s\n", buffer);
-				// }
 			}
 			else if (bitsread == 0) {
 				printf("Error receiving data from server!\n");
@@ -288,18 +258,19 @@ int main(int argc, char **argv)
 		}
 		else if (strncmp(command, "PUT", 3) == 0 || strncmp(command, "PUTMG", 5) == 0) {
 			printf("Okay, how many bytes will your message be?\nput:> ");
+			
 			//Get bytes
 			unsigned long bytes;
 			fscanf(stdin, "%lu", &bytes);
 			if (bytes == 0) { printf("No message will be created\n"); continue; }
 			char length[8];
 			sprintf(length, "%lu", bytes);
+			
 			//Get message
 			printf("Sounds good. What message would you like to send?\nput:>");
 			char* message = (char*)malloc(1024);
 			unsigned long currentSize = 1024;
 			char c = EOF;
-			// scanf("%s", &message); //variable length input
 			unsigned long i = 0;
 			getchar(); //clear buffer
 			int tooLong = 0;
@@ -327,27 +298,25 @@ int main(int argc, char **argv)
 			strcat(data, length);
 			strcat(data, "!");
 			strcat(data, message);
-			// printf("DATA: %s|\n", data);
 			free(message);
+
 			//Send to server
 			if (write(sock, data, strlen(data)) < 0) {
 				printf("Error sending data to server: %s\n", strerror(errno)); //Complain if something goes wrong
 				continue;
 			}
 			memset(data, 0, sizeof(data));
+
 			//Expect response
 			memset(buffer, 0, sizeof(buffer));
 			int bitsread = read(sock, buffer, sizeof(buffer));
 			if (bitsread != 0) {
-				// if(strncmp(buffer, "OK!", 3) == 0){
 				printf("%s\n", buffer);
-				// }
 			}
 			else if (bitsread == 0) {
 				printf("Error receiving data from server!\n");
 				exit(0);
 			}
-
 
 		}
 		else if (strncmp(command, "HELLO", 5) == 0) {
@@ -361,7 +330,6 @@ int main(int argc, char **argv)
 			if (bits == -1) {
 				printf("Error receiving data from server: %s\n", strerror(errno));	//Complain if something goes wrong
 			}
-			//printf("%s\n", buffer);
 
 		}
 		else if (strncmp(command, "HELP", 4) == 0) {
@@ -372,15 +340,7 @@ int main(int argc, char **argv)
 		else {
 			printf("That is not a command, for a command list enter 'help.'\n");
 		}
-		// if we couldn't write to the server for some reason, complain and exit
 
-		// sent message to the server, zero the buffer back out to read the server's response
-
-		// read a message from the server into the buffer
-
-		// if we couldn't read from the server for some reason, complain and exit
-
-		// print out server's message
 	}
 
 	return 0;

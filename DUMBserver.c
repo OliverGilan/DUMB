@@ -9,183 +9,9 @@
 #include <errno.h>
 #include <arpa/inet.h>
 #include <pthread.h>
+#include "sockets.h"
 
-// MESSAGE BOX
-typedef struct Node_t { // message in queue
-	char* message;
-	struct Node_t *prev;
-} NODE;
-
-typedef struct Queue { // head of queue
-	NODE *head;
-	NODE *tail;
-	int* size;  // num. messages in box
-} Queue;
-
-Queue *ConstructQueue();
-void freeQueue(Queue *queue);
-int Enqueue(Queue *pQueue, NODE *item);
-NODE *Dequeue(Queue *pQueue);
-int isEmpty(Queue* pQueue);
-int countChars(char* message);
-
-int countChars(char* message) {
-	if (message == NULL) {
-		return 0;
-	}
-	int i = 0;
-	while (message[i] != '\0' && i < strlen(message)) {
-		i++;
-	}
-	return i;
-}
-
-Queue *ConstructQueue() {
-	Queue *queue = (Queue*)malloc(sizeof(Queue));
-	if (queue == NULL) {
-		return NULL;
-	}
-	queue->size = (int*)calloc(1, sizeof(int));
-	queue->head = NULL;
-	queue->tail = NULL;
-
-	return queue;
-}
-
-void freeQueue(Queue *queue) {
-	NODE *pN;
-	while (!isEmpty(queue)) {
-		pN = Dequeue(queue);
-		free(pN);
-	}
-	free(queue);
-}
-
-int Enqueue(Queue *pQueue, NODE *item) {
-	if ((pQueue == NULL) || (item == NULL))
-		return 0;
-
-	item->prev = NULL;
-	if (*(pQueue->size) == 0) {
-		pQueue->head = item;
-		pQueue->tail = item;
-	}
-	else {
-		pQueue->tail->prev = item;
-		pQueue->tail = item;
-	}
-	*(pQueue->size) = *(pQueue->size) + 1;
-	// printf("after added: %d %s\n", *(pQueue->size), pQueue->tail->message);
-	return 1;
-}
-
-NODE * Dequeue(Queue *pQueue) {
-	if (isEmpty(pQueue))
-		return NULL;
-	NODE* item = pQueue->head;
-	pQueue->head = (pQueue->head)->prev;
-	*(pQueue->size) = *(pQueue->size) - 1;
-	return item;
-}
-
-int isEmpty(Queue* pQueue) {
-	if (pQueue == NULL) {
-		return 0;
-	}
-	if (*(pQueue->size) == 0) {
-		return 1;
-	}
-	else {
-		return 0;
-	}
-}
-
-// MESSAGE BOX LIST
-
-typedef struct node {
-	char* name;
-	Queue* messageBox;
-	struct node * next;
-	int* isOpen;
-} listNODE;
-
-typedef struct list {
-	listNODE * head;
-} List;
-
-listNODE * createnode(char* name, Queue* msgBox) {
-	listNODE * newNode = malloc(sizeof(listNODE));
-	newNode->name = malloc(sizeof(name));
-	strcpy(newNode->name, name);
-	newNode->isOpen = (int*)calloc(1, sizeof(int));
-	newNode->messageBox = msgBox;
-	newNode->next = NULL;
-	return newNode;
-}
-
-List * makelist() {
-	List * list = malloc(sizeof(List));
-	if (!list) {
-		return NULL;
-	}
-	list->head = NULL;
-	return list;
-}
-
-void add(char* name, Queue* msgBox, List * list) {
-	listNODE * current = NULL;
-	if (list->head == NULL) {
-		list->head = createnode(name, msgBox);
-	}
-	else {
-		current = list->head;
-		while (current->next != NULL) {
-			current = current->next;
-		}
-		current->next = createnode(name, msgBox);
-	}
-}
-
-void delete(char* name, List * list) {
-	listNODE * current = list->head;
-	listNODE * previous = current;
-	while (current != NULL) {
-		if (strcmp(current->name, name) == 0) {
-			previous->next = current->next;
-			if (current == list->head)
-				list->head = current->next;
-			free(current);
-			return;
-		}
-		previous = current;
-		current = current->next;
-	}
-}
-
-int alreadyExists(char* name, List * list) {
-	listNODE * current = list->head;
-	while (current != NULL) {
-		if (strcmp(current->name, name) == 0) {
-			return 1;
-		}
-		current = current->next;
-	}
-	return 0;
-}
-
-listNODE* getBox(char* name, List* list) {
-	listNODE * current = list->head;
-	while (current != NULL) {
-		if (strcmp(current->name, name) == 0) {
-			return current;
-		}
-		current = current->next;
-	}
-	return NULL;
-}
-
-// SERVER CODE
-
+// Shared Variables
 int portno;
 List* list;
 char* ipAddr;
@@ -197,46 +23,45 @@ void error(char *msg)
 	exit(1);
 }
 
+//Thread function for each client
 void* client(void* arg) {
+	//Socket
 	int socket = *(int*)arg;
 
 	//Active box user is in
 	listNODE* activeBox = NULL;
+
+	// port number, date, ip address
 	char* ipAddress = malloc(sizeof(ipAddr));
 	strcpy(ipAddress, ipAddr);
 	time_t t = time(NULL);
 	struct tm tm = *localtime(&t);
-	// port number, date, ip address
-
-	printf("%i %d %s %s connected\n", portno, tm.tm_mday, months[tm.tm_mon], ipAddress);
+	
+	printf("%i %d %s %s connected\n", portno, tm.tm_mday, months[tm.tm_mon], ipAddress);	//Indicate new connection
 
 	//Wait for data to come in from client
 	char buffer[1024];
 	while (1) {
-		// for (int i = 0; i < 1024; i++) {
-		// 	buffer[i] = '\0';
-		// }
-		memset(buffer, 0, sizeof(buffer));
+		memset(buffer, 0, sizeof(buffer));					//Always reset buffer
 		int bits = read(socket, buffer, sizeof(buffer));	//Read data from socket
 		if (bits == -1) {
 			printf("Error receiving data from client: %s\n", strerror(errno));	//Complain if something goes wrong
 		}
-		if (bits == 0) { break; } //Needs a break clause. Temp for now.
+		if (bits == 0) { break; } //Needs a break clause
 
 		//Do something with data
 		printf("%i %d %s %s %s\n", portno, tm.tm_mday, months[tm.tm_mon], ipAddress, buffer);
 
+		//Determine what the command is
 		if (strncmp(buffer, "HELLO", 5) == 0) {
 			char* response = "HELLO DUMBv0 ready!";
 			send(socket, response, strlen(response), 0);
 		}
 		else if (strncmp(buffer, "GDBYE", 5) == 0) {
-			char* response = "GDBYE DUMBv0";
 			if (activeBox != NULL) {
 				*(activeBox->isOpen) = 0;
 				activeBox = NULL;
 			}
-			send(socket, response, strlen(response), 0);
 			break;
 		}
 		else if (strstr(buffer, "CREAT") != NULL) {
@@ -248,7 +73,6 @@ void* client(void* arg) {
 			}
 			else {
 				add(name, msgBox, list);
-				// activeBox = list->head;
 			}
 			send(socket, response, strlen(response), 0);
 		}
@@ -275,7 +99,7 @@ void* client(void* arg) {
 			send(socket, response, strlen(response), 0);
 		}
 		else if (strstr(buffer, "PUTMG") != NULL) {
-			char* response;
+			char* response = (char*)malloc(25);
 			if (activeBox == NULL) {
 				response = "ER:NOOPN";
 			}
@@ -290,21 +114,17 @@ void* client(void* arg) {
 					i++;
 				}
 				message = &buffer[i];
-				// printf("test: %s\n", message);
 				char* command = strtok(buffer, "!");
 				char* bytes = strtok(NULL, "!");
 				if (message == NULL || message[0] == '\0') {
 					response = "ER:WHAT?";
 				}
 				else {
-					// printf("working still %s\n", message);
-					// listNODE* box = activeBox;
 					NODE* item = (NODE*)malloc(sizeof(NODE*));
-					item->message = (char*)malloc(sizeof(message));
-					strcpy(item->message, message);
+					item->message = (char*)malloc(atoi(bytes));
+					strncpy(item->message, message, atoi(bytes));
 					item->prev = NULL;
 					int res = Enqueue(activeBox->messageBox, item);
-					// printf("added: %d %d\n", res, *(activeBox->messageBox->size));
 					response = "OK!";
 				}
 			}
@@ -354,10 +174,6 @@ void* client(void* arg) {
 			else {
 				NODE* nxtMsg = Dequeue(activeBox->messageBox);
 				Queue* q = activeBox->messageBox;
-				// printf("%d\n", *(q->size));
-				// printf("%s  %d\n", activeBox->name, *(activeBox->messageBox->size));
-				// printf("%s\n",nxtMsg->message);
-				// printf("broke\n");
 				if (nxtMsg == NULL) {
 					response = "ER:EMPTY";
 				}
@@ -468,25 +284,17 @@ int main(int argc, char *argv[])
 		pthread_detach(thread);
 
 	}
+	
+	//Free the server memory
 	free(ipAddr);
-
-	/** If we're here, a client tried to connect **/
-
-	// if the connection blew up for some reason, complain and exit
-
-	// memset(buffer, 0, sizeof(buffer));							// zero out the char buffer to receive a client message
-	// val = read(newsockfd, buffer, 1024);	// try to read from the client socket
-	// if (val == -1) {						// if the read from the client blew up, complain and exit
-	// 	perror("read");
-	// 	exit(EXIT_FAILURE);
-	// }
-	// printf("%s\n", buffer);
-	// for loop to read commands and text
-
-// try to write to the client socket
-
-// if the write to the client blow up, complain and exit
-
+	listNODE* ptr = list->head;
+	listNODE* prev = NULL;
+	while(ptr != NULL){
+		prev = ptr;
+		ptr = ptr->next;
+		freeQueue(prev->messageBox);
+	}
+	free(list);
 
 	return 0;
 }
