@@ -255,7 +255,11 @@ void* client(void* arg) {
 		else if (strstr(buffer, "DELBX") != NULL) {
 			char* response = "OK!";
 			char* name = strstr(buffer, " ");
-			if (alreadyExists(name, list) == 1) {
+
+			if (getBox(name, list)->isOpen || (activeBox != NULL && strcmp(activeBox->name, name))) {
+				response = "ER:OPEND";
+			}
+			else if (alreadyExists(name, list) == 1) {
 				listNODE* box = getBox(name, list);
 				if (!isEmpty(box->messageBox)) {
 					response = "ER: NOTMT";
