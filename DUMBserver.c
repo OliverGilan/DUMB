@@ -229,7 +229,7 @@ void* client(void* arg) {
 		activeBox = NULL;
 	}
 	printf("%i %d %s %s disconnected\n", portno, tm.tm_mday, months[tm.tm_mon], ipAddress);
-
+	pthread_mutex_destroy(&queueMutex);
 	return NULL;
 }
 
