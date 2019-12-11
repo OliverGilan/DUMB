@@ -330,6 +330,7 @@ int main(int argc, char **argv)
 			if (bits == -1) {
 				printf("Error receiving data from server: %s\n", strerror(errno));	//Complain if something goes wrong
 			}
+			printf("%s\n", buffer);
 
 		}
 		else if (strncmp(command, "HELP", 4) == 0) {
