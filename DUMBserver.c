@@ -16,6 +16,7 @@ int portno;
 List* list;
 char* ipAddr;
 const char * months[12] = { "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" };
+pthread_mutex_t queueMutex;
 
 void error(char *msg)
 {
@@ -36,7 +37,7 @@ void* client(void* arg) {
 	strcpy(ipAddress, ipAddr);
 	time_t t = time(NULL);
 	struct tm tm = *localtime(&t);
-	
+
 	printf("%i %d %s %s connected\n", portno, tm.tm_mday, months[tm.tm_mon], ipAddress);	//Indicate new connection
 
 	//Wait for data to come in from client
@@ -68,18 +69,24 @@ void* client(void* arg) {
 			char* response = "OK!";
 			Queue *msgBox = ConstructQueue();
 			char* name = strstr(buffer, " ");
+
+			pthread_mutex_lock(&queueMutex);
 			if (alreadyExists(name, list)) {
 				response = "ER:EXIST";
 			}
 			else {
 				add(name, msgBox, list);
 			}
+			pthread_mutex_unlock(&queueMutex);
+
 			send(socket, response, strlen(response), 0);
 		}
 		else if (strstr(buffer, "DELBX") != NULL) {
 			char* response = "OK!";
 			char* name = strstr(buffer, " ");
+			int locked = 0;
 
+			pthread_mutex_lock(&queueMutex);
 			if (*(getBox(name, list)->isOpen) == 1 || (activeBox != NULL && strcmp(activeBox->name, name))) {
 				response = "ER:OPEND";
 			}
@@ -95,11 +102,14 @@ void* client(void* arg) {
 			else if (alreadyExists(name, list) == 0) {
 				response = "ER:NEXST";
 			}
+			pthread_mutex_unlock(&queueMutex);
 
 			send(socket, response, strlen(response), 0);
 		}
 		else if (strstr(buffer, "PUTMG") != NULL) {
 			char* response = (char*)malloc(25);
+
+			pthread_mutex_lock(&queueMutex);
 			if (activeBox == NULL) {
 				response = "ER:NOOPN";
 			}
@@ -128,12 +138,15 @@ void* client(void* arg) {
 					response = "OK!";
 				}
 			}
+			pthread_mutex_unlock(&queueMutex);
+
 			send(socket, response, strlen(response), 0);
 		}
 		else if (strstr(buffer, "OPNBX") != NULL) {
 			char* name = strstr(buffer, " ");
 			char* response = "OK!";
 
+			pthread_mutex_lock(&queueMutex);
 			if (activeBox != NULL) {
 				response = "ER:INBOX";
 			}
@@ -144,9 +157,11 @@ void* client(void* arg) {
 				response = "ER:OPEND";
 			}
 			else {
+				pthread_mutex_unlock(&queueMutex);
 				activeBox = getBox(name, list);
 				*(activeBox->isOpen) = 1;
 			}
+			pthread_mutex_unlock(&queueMutex);
 
 			send(socket, response, strlen(response), 0);
 		}
@@ -162,12 +177,15 @@ void* client(void* arg) {
 			else {
 				*(activeBox->isOpen) = 0;
 				activeBox = NULL;
-			}
 
+			}
+			pthread_mutex_unlock(&queueMutex);
 			send(socket, response, strlen(response), 0);
 		}
 		else if (strstr(buffer, "NXTMG") != NULL) {
 			char* response = "OK";
+
+			pthread_mutex_lock(&queueMutex);
 			if (activeBox == NULL) {
 				response = "ER:NOOPN";
 			}
@@ -189,9 +207,12 @@ void* client(void* arg) {
 					strcat(complete, nxtMsg->message);
 
 					send(socket, complete, strlen(complete), 0);
+					pthread_mutex_unlock(&queueMutex);
 					continue;
 				}
 			}
+			pthread_mutex_unlock(&queueMutex);
+
 			send(socket, response, strlen(response), 0);
 		}
 		else {
@@ -284,12 +305,12 @@ int main(int argc, char *argv[])
 		pthread_detach(thread);
 
 	}
-	
+
 	//Free the server memory
 	free(ipAddr);
 	listNODE* ptr = list->head;
 	listNODE* prev = NULL;
-	while(ptr != NULL){
+	while (ptr != NULL) {
 		prev = ptr;
 		ptr = ptr->next;
 		freeQueue(prev->messageBox);

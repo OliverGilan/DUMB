@@ -258,14 +258,14 @@ int main(int argc, char **argv)
 		}
 		else if (strncmp(command, "PUT", 3) == 0 || strncmp(command, "PUTMG", 5) == 0) {
 			printf("Okay, how many bytes will your message be?\nput:> ");
-			
+
 			//Get bytes
 			unsigned long bytes;
 			fscanf(stdin, "%lu", &bytes);
 			if (bytes == 0) { printf("No message will be created\n"); continue; }
 			char length[8];
 			sprintf(length, "%lu", bytes);
-			
+
 			//Get message
 			printf("Sounds good. What message would you like to send?\nput:>");
 			char* message = (char*)malloc(1024);
